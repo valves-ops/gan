@@ -8,10 +8,22 @@ GAN training hyperparameter tuning quantitative investigation
 2. Connect to the desired runtime (CPU/GPU/TPU) and mount Google Drive
 
 3. Execute this code snippet on a Colab notebook
-```
+```python
 # Install colab_ssh on google colab
 !pip install colab_ssh --upgrade
 
+# Install TF-GAN
+!pip install tensorflow-gan
+
+# Setup Git identity
+!git config --global user.email "vinicius.alves.contato@gmail.com"
+!git config --global user.name "Vinicius Alves"
+
+# Setup aliases
+!wget https://raw.githubusercontent.com/valves-ops/meditations/master/scripts/alias.sh
+!source alias.sh
+
+# Start Cloudflare Tunnel
 from colab_ssh import launch_ssh_cloudflared, init_git_cloudflared
 launch_ssh_cloudflared(password="test123")
 ```
