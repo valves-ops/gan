@@ -16,9 +16,20 @@ from colab_ssh import launch_ssh_cloudflared, init_git_cloudflared
 launch_ssh_cloudflared(password="test123")
 ```
 
-4. User SSH Remote extension on VSCode to connect to the VSCode Remote SSH 
+4. User SSH Remote extension on VSCode to connect to the VSCode Remote SSH
+
+5. Open a VSCode terminal and create the following directory
+```
+mkdir /content/drive/MyDrive/colab/repositories
+```
 
 5. Clone this repository with the following command
 ```
+cd /content/drive/MyDrive/colab/repositories
 git clone https://{PERSONAL_ACCESS_TOKEN}@github.com/valves-ops/{REPO}.git
+```
+
+6. Open the following folder on VSCode:
+```
+mkdir /content/drive/MyDrive/colab/
 ```
