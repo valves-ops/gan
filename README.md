@@ -45,3 +45,12 @@ git clone https://{PERSONAL_ACCESS_TOKEN}@github.com/valves-ops/{REPO}.git
 ```
 mkdir /content/drive/MyDrive/colab/
 ```
+
+#### Useful References related to the VSCode/Colab/Github setup
+[Connect VSCode to Google Colab](https://medium.com/swlh/connecting-local-vscode-to-google-colabs-gpu-runtime-bceda3d6cf64)
+[Google Drive + Google Colab + GitHub](https://towardsdatascience.com/google-drive-google-colab-github-dont-just-read-do-it-5554d5824228)
+
+
+## Useful Resources
+[TF-GAN Library](https://github.com/tensorflow/gan)
+[Compare GAN](https://github.com/google/compare_gan)
