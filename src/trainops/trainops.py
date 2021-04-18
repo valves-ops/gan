@@ -24,9 +24,11 @@ class GANTrainOps:
         self.batches_per_evaluation = batches_per_evaluation
         self.batch_count_for_evalution = batch_count_for_evalution
 
+        print(self._get_checkpoint_prefix())
+
         self.checkpoint_manager = tf.train.CheckpointManager(
             self.gan_estimator.checkpoint, 
-            self._get_checkpoint_directory, 
+            self._get_checkpoint_directory(), 
             max_to_keep=3
         )
 
@@ -84,11 +86,11 @@ class GANTrainOps:
     def _get_base_dir(self):
         return os.path.join(os.getcwd(), "data")
 
-    def _get_checkpoint_prefix(self):
-        return os.path.join(self._get_checkpoint_directory(), "ckpt")
-
     def _get_checkpoint_directory(self):
         return os.path.join(self._get_base_dir(), self.model_slug, "checkpoints")
+
+    def _get_checkpoint_prefix(self):
+        return os.path.join(self._get_checkpoint_directory(), "ckpt")
 
     def restore_latest_checkpoint(self):
         self.gan_estimator.restore(self.checkpoint_manager.latest_checkpoint)
@@ -104,10 +106,11 @@ class GANTrainOps:
             base_image_latent_vectors = np.load(self._get_base_images_latent_vectors_file_path())
         
         # Create and save to disk, otherwise
-        except np.IOError:    
+        except FileNotFoundError:    
             batch_size = 20
             latent_space_dim = 100
             base_image_latent_vectors = tf.random.normal([batch_size, latent_space_dim])
-            np.save(self._get_base_images_latent_vectors_file_path(), base_latent_vectors.numpy())
+            with open(self._get_base_images_latent_vectors_file_path(), 'wb') as f:
+                np.save(f, base_image_latent_vectors.numpy())
         
         return base_image_latent_vectors

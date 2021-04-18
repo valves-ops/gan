@@ -14,14 +14,15 @@ class GANEstimator:
         self.evaluation_metrics = evaluation_metrics
         self.losses_history = {}
 
-        component_models = []
+        models_and_optimizers = {}
         for component in self.gan_model.trainable_components:
             self.losses_history[component.slug] = []
-            component_models.append(component.model)
+            models_and_optimizers.update({(component.slug+'_model'): component.model})
+        
+        for optimizer_slug, optimizer in self.component_optimizers.items():
+            models_and_optimizers.update({(optimizer_slug+'_optimizer'): optimizer})
 
-        self.checkpoint = tf.train.Checkpoint(
-            *(component_models+component_optimizers.values())
-        )
+        self.checkpoint = tf.train.Checkpoint(**models_and_optimizers)
 
 
     def train_step(self, batch):
