@@ -11,7 +11,7 @@ class GANEstimator:
         self.gan_model = gan_model
         self.component_losses = component_losses
         self.component_optimizers = component_optimizers
-        self.evaluate_metrics = metric_evaluation_function
+        self.evaluation_metrics = evaluation_metrics
         self.losses_history = {}
 
         component_models = []
@@ -34,7 +34,7 @@ class GANEstimator:
                 
                 self.losses_history[component.slug].append(loss)
 
-        for component, loss in zip(self.losses, self.gan_model.trainable_components)
+        for component, loss in zip(self.losses, self.gan_model.trainable_components):
             gradients = tape.gradient(loss, component.model.trainable_variables)
 
             self.component_optimizers[component.slug].apply_gradients(
@@ -43,11 +43,21 @@ class GANEstimator:
         del tape
 
     def evaluate(self, input_function, batch_count):
+        metrics = {}
+        for metric_name in self.evaluation_metrics:
+            metrics.update({metric_name: tf.keras.metrics.Mean()})
+
         for count, batch in enumerate(input_function('train')):
             self.gan_model.evaluate(batch)
             # Calculate Metrics
+            for metric_name, metric_function in self.evaluation_metrics.items():
+                metrics[metric_name].update_state(metric_function(self.gan_model))
 
-            # Return metrics
+        # Return metrics
+        return metrics
+
+    def predict(self, input):
+        return self.gan_model.predict(input)
 
 
     def restore(self, checkpoint):
