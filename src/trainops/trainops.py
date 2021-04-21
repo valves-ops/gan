@@ -96,17 +96,21 @@ class GANTrainOps:
         self.gan_estimator.restore(self.checkpoint_manager.latest_checkpoint)
 
     def _get_base_images_latent_vectors_file_path(self):
-        return os.path.join(self._get_base_dir(), 
-                            'latent_vectors',
-                            self.model_slug+'_base_images_latent_vectors.npy')
+        return os.path.join(
+            self._get_base_dir(),
+            "latent_vectors",
+            self.model_slug + "_base_images_latent_vectors.npy",
+        )
 
     def get_or_create_base_images_latent_vectors(self):
         # Try to retrieve from disk
         try:
-            base_image_latent_vectors = np.load(self._get_base_images_latent_vectors_file_path())
-        
+            base_image_latent_vectors = np.load(
+                self._get_base_images_latent_vectors_file_path()
+            )
+
         # Create and save to disk, otherwise
-        except FileNotFoundError:    
+        except FileNotFoundError:
             batch_size = 20
             latent_space_dim = 100
             base_image_latent_vectors = tf.random.normal([batch_size, latent_space_dim])
@@ -114,11 +118,11 @@ class GANTrainOps:
             if not os.path.exists(os.path.dirname(filename)):
                 try:
                     os.makedirs(os.path.dirname(filename))
-                except OSError as exc: # Guard against race condition
+                except OSError as exc:  # Guard against race condition
                     if exc.errno != errno.EEXIST:
                         raise
 
-            with open(filename, 'wb') as f:
+            with open(filename, "wb") as f:
                 np.save(f, base_image_latent_vectors.numpy())
-        
+
         return base_image_latent_vectors

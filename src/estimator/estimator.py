@@ -2,12 +2,13 @@ import tensorflow as tf
 
 
 class GANEstimator:
-    def __init__(self, 
-                 gan_model,
-                 component_losses, # { 'component_slug' : loss_fn }
-                 component_optimizers, # { 'component_slug' : optimizer }
-                 evaluation_metrics, # {'metric_name' : }
-                ):
+    def __init__(
+        self,
+        gan_model,
+        component_losses,  # { 'component_slug' : loss_fn }
+        component_optimizers,  # { 'component_slug' : optimizer }
+        evaluation_metrics,  # {'metric_name' : }
+    ):
         self.gan_model = gan_model
         self.component_losses = component_losses
         self.component_optimizers = component_optimizers
@@ -17,13 +18,12 @@ class GANEstimator:
         models_and_optimizers = {}
         for component in self.gan_model.trainable_components:
             self.losses_history[component.slug] = []
-            models_and_optimizers.update({(component.slug+'_model'): component.model})
-        
+            models_and_optimizers.update({(component.slug + "_model"): component.model})
+
         for optimizer_slug, optimizer in self.component_optimizers.items():
-            models_and_optimizers.update({(optimizer_slug+'_optimizer'): optimizer})
+            models_and_optimizers.update({(optimizer_slug + "_optimizer"): optimizer})
 
         self.checkpoint = tf.train.Checkpoint(**models_and_optimizers)
-
 
     def train_step(self, batch):
         with tf.GradientTape(persistent=True) as tape:
@@ -35,12 +35,13 @@ class GANEstimator:
                 self.losses.append(loss)
                 self.losses_history[component.slug].append(loss)
 
-        for loss, component  in zip(self.losses, self.gan_model.trainable_components):
+        for loss, component in zip(self.losses, self.gan_model.trainable_components):
             gradients = tape.gradient(loss, component.model.trainable_variables)
 
             self.component_optimizers[component.slug].apply_gradients(
-                zip(gradients, component.model.trainable_variables))
-        
+                zip(gradients, component.model.trainable_variables)
+            )
+
         del tape
 
     def evaluate(self, input_function, batch_count):
@@ -48,7 +49,7 @@ class GANEstimator:
         for metric_name in self.evaluation_metrics:
             metrics.update({metric_name: tf.keras.metrics.Mean()})
 
-        for count, batch in enumerate(input_function('train')):
+        for count, batch in enumerate(input_function("train")):
             self.gan_model.evaluate(batch)
             # Calculate Metrics
             for metric_name, metric_function in self.evaluation_metrics.items():
@@ -60,8 +61,5 @@ class GANEstimator:
     def predict(self, input):
         return self.gan_model.predict(input)
 
-
     def restore(self, checkpoint):
         self.checkpoint.restore(checkpoint)
-
-
