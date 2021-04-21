@@ -2,6 +2,7 @@ import os
 import time
 
 import tensorflow as tf
+import tensorflow_gan as tfgan
 import numpy as np
 
 
