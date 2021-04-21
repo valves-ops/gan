@@ -29,9 +29,9 @@ class GANModel:
     def evaluate(self, batch):
         self.latent_vectors_batch = self._generate_latent_vectors_batch(batch)
         self.generated_images = self._generate_images(self.latent_vectors_batch)
-        self.discrimination_on_generated_images = self._discriminate_images(self.generated_images)
-        self.real_images = self.batch[1]
-        self.discrimination_on_real_images = self._discriminate_images(self.real_images)
+        self.discrimination_on_generated_images, self.discriminator_feature_on_generated_images = self._discriminate_images(self.generated_images)
+        self.real_images = batch[1]
+        self.discrimination_on_real_images, self.discriminator_feature_on_real_images = self._discriminate_images(self.real_images)
 
     def predict(self, input):
         self.generated_images = self._generate_images(self.latent_vectors_batch)

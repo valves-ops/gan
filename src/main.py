@@ -55,7 +55,7 @@ def main():
         },
         component_optimizers={
             'generator' : tf.keras.optimizers.Adam(0.0002, 0.5),
-            'dsicriminator' : tf.keras.optimizers.Adam(0.0002, 0.5),
+            'discriminator' : tf.keras.optimizers.Adam(0.0002, 0.5),
         },
         evaluation_metrics={
             'frechet_distance' :  frechet_distance

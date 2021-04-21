@@ -42,7 +42,7 @@ class GANTrainOps:
         for metric_name in self.gan_estimator.evaluation_metrics:
             metrics_buffer.update({ metric_name: [] })
 
-        for epoch in self.epochs:
+        for epoch in range(self.epochs):
             batches = self.input_function(mode="train")
             batch_number = 0
             batch_durations = []
@@ -110,7 +110,15 @@ class GANTrainOps:
             batch_size = 20
             latent_space_dim = 100
             base_image_latent_vectors = tf.random.normal([batch_size, latent_space_dim])
-            with open(self._get_base_images_latent_vectors_file_path(), 'wb') as f:
+            filename = self._get_base_images_latent_vectors_file_path()
+            if not os.path.exists(os.path.dirname(filename)):
+                try:
+                    os.makedirs(os.path.dirname(filename))
+                except OSError as exc: # Guard against race condition
+                    if exc.errno != errno.EEXIST:
+                        raise
+
+            with open(filename, 'wb') as f:
                 np.save(f, base_image_latent_vectors.numpy())
         
         return base_image_latent_vectors

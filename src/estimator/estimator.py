@@ -29,17 +29,17 @@ class GANEstimator:
         with tf.GradientTape(persistent=True) as tape:
             self.gan_model.evaluate(batch)
 
-            losses = []
+            self.losses = []
             for component in self.gan_model.trainable_components:
                 loss = self.component_losses[component.slug](self.gan_model)
-                
+                self.losses.append(loss)
                 self.losses_history[component.slug].append(loss)
 
-        for component, loss in zip(self.losses, self.gan_model.trainable_components):
+        for loss, component  in zip(self.losses, self.gan_model.trainable_components):
             gradients = tape.gradient(loss, component.model.trainable_variables)
 
             self.component_optimizers[component.slug].apply_gradients(
-                zip(gradients, component.model.variables))
+                zip(gradients, component.model.trainable_variables))
         
         del tape
 

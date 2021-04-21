@@ -46,7 +46,7 @@ def build_mnist_generator():
   dense_layer = reshaped_dense_layer(input_layer)
   deconv0 = deconvolutional_layer(dense_layer, 128, 1)
   deconv1 = deconvolutional_layer(deconv0, 64, 2)   
-  deconv2 = deconvolutional_layer(deconv1, 32, 1)  
+  deconv2 = deconvolutional_layer(deconv1, 32, 2)  
   output_layer = keras.layers.Conv2DTranspose(
       filters=1,
       kernel_size=(5, 5),

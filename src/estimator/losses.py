@@ -1,3 +1,4 @@
+import tensorflow as tf
 
 def binary_cross_entropy_discriminator_loss(gan_model, 
                                         real_label_smoothing_factor=0.9,
