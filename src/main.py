@@ -9,6 +9,9 @@ from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cro
 from trainops.metrics import frechet_distance
 from trainops.trainops import GANTrainOps
 
+
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
 def input_fn(mode):
     # assert 'batch_size' in params
     # assert 'noise_dims' in params
