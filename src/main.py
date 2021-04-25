@@ -2,7 +2,7 @@ import tensorflow_gan as tfgan
 import tensorflow_datasets as tfds
 import tensorflow as tf
 
-from architectures import mnist_dcgans
+from architectures import mnist_dcgans, dcgan
 from model.gan_model import GANModel
 from estimator.estimator import GANEstimator
 from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cross_entropy_generator_loss
@@ -47,7 +47,8 @@ def input_fn(mode):
 def main():
     gan_model = GANModel(
         generator=mnist_dcgans.build_mnist_generator(),
-        discriminator=mnist_dcgans.build_mnist_discriminator()
+        discriminator=mnist_dcgans.build_mnist_discriminator(),
+        train_step_function=dcgan.dcgan_train_step
     )
 
     gan_estimator = GANEstimator(
