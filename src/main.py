@@ -58,8 +58,8 @@ def main():
             'discriminator' : binary_cross_entropy_discriminator_loss,
         },
         component_optimizers={
-            'generator' : tf.keras.optimizers.Adam(0.0002, 0.5),
-            'discriminator' : tf.keras.optimizers.Adam(0.0002, 0.5),
+            'generator' : tf.keras.optimizers.Adam(1e-5),
+            'discriminator' : tf.keras.optimizers.Adam(1e-5),
         },
         evaluation_metrics={
             'frechet_distance' :  frechet_distance
