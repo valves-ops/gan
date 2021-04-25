@@ -16,7 +16,7 @@ class GANTrainOps:
         model_slug,
         epochs=100,
         epochs_per_checkpoint=5,
-        batches_per_evaluation=1000,
+        batches_per_evaluation=10000,
         batch_count_for_evalution=10,
     ):
         self.gan_estimator = gan_estimator
