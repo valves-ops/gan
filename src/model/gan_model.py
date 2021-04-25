@@ -26,6 +26,12 @@ class GANModel:
         )
         self.train_step_function = train_step_function
 
+        print('============================')
+        print('   GAN MODEL INITIALIZED    ')
+        print('============================')
+        self.generator.summary()
+        self.discriminator.summary()
+
     def evaluate(self, batch):
         self.latent_vectors_batch = self._generate_latent_vectors_batch(batch)
         self.generated_images = self._generate_images(self.latent_vectors_batch)
