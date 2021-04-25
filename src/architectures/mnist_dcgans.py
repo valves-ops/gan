@@ -61,9 +61,9 @@ def build_mnist_discriminator():
   input_layer = keras.layers.Input(img_input_shape)
   conv1 = convolutional_layer(input_layer, 64, 5, 1)
   conv2 = convolutional_layer(conv1, 128, 5, 2)
-  conv3 = convolutional_layer(conv2, 256, 5, 2)
-  conv4 = convolutional_layer(conv3, 512, 5, 2)
-  flatten_layer = keras.layers.Flatten()(conv4)
+  # conv3 = convolutional_layer(conv2, 256, 5, 2)
+  # conv4 = convolutional_layer(conv3, 512, 5, 2)
+  flatten_layer = keras.layers.Flatten()(conv2)
   output_layer = keras.layers.Dense(1, activation=keras.activations.sigmoid)(flatten_layer)
   D = tf.keras.Model(inputs=input_layer, outputs=[output_layer, flatten_layer])
   return D
