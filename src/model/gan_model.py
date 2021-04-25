@@ -13,8 +13,9 @@ class GANModel:
     discrimination_on_real_images = None
     discriminator_feature_on_generated_images = None
     discriminator_feature_on_real_images = None
+    train_step_function = None
 
-    def __init__(self, generator, discriminator):
+    def __init__(self, generator, discriminator, train_step_function):
         self.generator = generator
         self.trainable_components.append(
             ModelComponent(model=self.generator, slug="generator")
@@ -23,6 +24,7 @@ class GANModel:
         self.trainable_components.append(
             ModelComponent(model=self.discriminator, slug="discriminator")
         )
+        self.train_step_function = train_step_function
 
     def evaluate(self, batch):
         self.latent_vectors_batch = self._generate_latent_vectors_batch(batch)

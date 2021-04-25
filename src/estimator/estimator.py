@@ -26,24 +26,20 @@ class GANEstimator:
         self.checkpoint = tf.train.Checkpoint(**models_and_optimizers)
 
     def train_step(self, batch):
-        with tf.GradientTape(persistent=True) as tape:
-            self.gan_model.evaluate(batch)
+        tf_train_step_function = self.gan_model.train_step_function
+        model_struct = {
+            key: {
+                'model': list(filter(
+                    lambda component, slug=key: component.slug == slug,
+                    self.gan_model.trainable_components))[0].model,
+                'optimizer': self.component_optimizers[key],
+                'loss': self.component_losses[key]
+            }
+            for key in self.component_optimizers.keys()
+        }
+        tf_train_step_function(batch, model_struct)
 
-            self.losses = []
-            for component in self.gan_model.trainable_components:
-                loss = self.component_losses[component.slug](self.gan_model)
-                self.losses.append(loss)
-                self.losses_history[component.slug].append(loss)
-
-        for loss, component in zip(self.losses, self.gan_model.trainable_components):
-            gradients = tape.gradient(loss, component.model.trainable_variables)
-
-            self.component_optimizers[component.slug].apply_gradients(
-                zip(gradients, component.model.trainable_variables)
-            )
-
-        del tape
-
+    # TODO: Update evaluation function
     def evaluate(self, input_function, batch_count):
         metrics = {}
         for metric_name in self.evaluation_metrics:

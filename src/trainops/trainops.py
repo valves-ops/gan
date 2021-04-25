@@ -5,6 +5,8 @@ import tensorflow as tf
 import tensorflow_gan as tfgan
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 
 class GANTrainOps:
     def __init__(
@@ -79,11 +81,11 @@ class GANTrainOps:
                     plt.imshow(np.squeeze(img_grid))
                     plt.show()
 
-                if epoch % self.epochs_per_checkpoint == 0:
-                    self.gan_estimator.checkpoint.save(
-                        file_prefix=self._get_checkpoint_prefix()
-                    )
-                    # TODO: Save metrics to disk
+            if epoch % self.epochs_per_checkpoint == 0:
+                self.gan_estimator.checkpoint.save(
+                    file_prefix=self._get_checkpoint_prefix()
+                )
+                # TODO: Save metrics to disk
 
     def _get_base_dir(self):
         return os.path.join(os.getcwd(), "data")
