@@ -44,22 +44,22 @@ def deconvolutional_layer(previous_layer, filter_depth, strides):
 def build_mnist_generator():
   input_layer = keras.layers.Input(latent_space_shape)
   dense_layer = reshaped_dense_layer(input_layer)
-  deconv0 = deconvolutional_layer(dense_layer, 128, 1)
+  deconv0 = deconvolutional_layer(dense_layer, 128, 2)
   deconv1 = deconvolutional_layer(deconv0, 64, 2)   
-  deconv2 = deconvolutional_layer(deconv1, 32, 2)  
+  # deconv2 = deconvolutional_layer(deconv1, 32, 2)  
   output_layer = keras.layers.Conv2DTranspose(
       filters=1,
       kernel_size=(5, 5),
       strides=1,
       padding='same',
-      activation='tanh')(deconv2)
+      activation='tanh')(deconv1)
 
   generator = tf.keras.Model(inputs=input_layer, outputs=output_layer)
   return generator
 
 def build_mnist_discriminator():
   input_layer = keras.layers.Input(img_input_shape)
-  conv1 = convolutional_layer(input_layer, 64, 5, 1)
+  conv1 = convolutional_layer(input_layer, 64, 5, 2)
   conv2 = convolutional_layer(conv1, 128, 5, 2)
   # conv3 = convolutional_layer(conv2, 256, 5, 2)
   # conv4 = convolutional_layer(conv3, 512, 5, 2)
