@@ -12,15 +12,15 @@ class GANTrainOps:
     def __init__(
         self,
         gan_estimator,
-        input_function,
+        dataset,
         model_slug,
         epochs=100,
-        epochs_per_checkpoint=5,
-        batches_per_evaluation=10000,
+        epochs_per_checkpoint=10,
+        batches_per_evaluation=200,
         batch_count_for_evalution=10,
     ):
         self.gan_estimator = gan_estimator
-        self.input_function = input_function
+        self.dataset = dataset
         self.model_slug = model_slug
         self.epochs = epochs
         self.epochs_per_checkpoint = epochs_per_checkpoint
@@ -43,11 +43,13 @@ class GANTrainOps:
         for metric_name in self.gan_estimator.evaluation_metrics:
             metrics_buffer.update({metric_name: []})
 
+        print('Starting execution of ', self.epochs, ' epochs.')
         for epoch in range(self.epochs):
-            batches = self.input_function(mode="train")
+            print('Starting Epoch: ', epoch)
+            # batches = self.dataset(mode="train")
             batch_number = 0
             batch_durations = []
-            for batch in batches:
+            for batch in self.dataset:
                 batch_number += 1
 
                 batch_start_time = time.time()
@@ -67,7 +69,7 @@ class GANTrainOps:
                         % ((time.time() - start_time) / 60.0)
                     )
                     print(f"Batch Number {batch_number} @ Epoch {epoch}")
-                    print(f"Average batch time: {np.average(batch_durations)} secs")
+                    print(f"Average batch time: {round(np.average(batch_durations)*1000)} ms")
 
                     # Metrics Logging
                     # for metric_name, metric in metrics.items():
@@ -82,10 +84,13 @@ class GANTrainOps:
                     plt.show()
 
             if epoch % self.epochs_per_checkpoint == 0:
+                print('Creating model checkpoint at epoch: ', epoch)
                 self.gan_estimator.checkpoint.save(
                     file_prefix=self._get_checkpoint_prefix()
                 )
                 # TODO: Save metrics to disk
+        
+        print('Finished training!')
 
     def _get_base_dir(self):
         return os.path.join(os.getcwd(), "data")
