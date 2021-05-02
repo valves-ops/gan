@@ -100,6 +100,17 @@ class GANTrainOps:
                     file_prefix=self._get_checkpoint_prefix()
                 )
                 # TODO: Save metrics to disk
+            
+            if epoch % self.epochs_per_evaluation == 0:
+                # Evaluate
+                print('Starting model evaluation @ EPOCH: ', epoch)
+                metrics = self.gan_estimator.evaluate(self.dataset, self.batch_count_for_evaluation)
+                self.metrics_buffer.append(metrics)
+                print('--- Evaluation Metrics @ EPOCH: ', epoch, ' ---')
+                for metric_name in self.gan_estimator.evaluation_metrics.keys():
+                    print(metric_name, ': ', metrics[metric_name].result().numpy())
+                print('------------------------------------------------')
+                # Console Logging
         
         print('Finished training!')
 
