@@ -48,6 +48,7 @@ class GANTrainOps:
         print('Epochs per Evaluation: ', self.epochs_per_evaluation)
         print('Batches per Logging: ', self.batches_per_logging)
         print('Batch count for evalution: ', self.batch_count_for_evaluation)
+        print('--------------------')
 
     def train(self):
         start_time = time.time()
