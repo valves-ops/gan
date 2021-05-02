@@ -2,6 +2,8 @@ import tensorflow_gan as tfgan
 import tensorflow_datasets as tfds
 import tensorflow as tf
 
+import gin
+
 from architectures import mnist_dcgans, dcgan
 from model.gan_model import GANModel
 from estimator.estimator import GANEstimator
@@ -43,16 +45,17 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 #     return tf.data.Dataset.zip((noise_ds, images_ds))
 
+
 def _preprocess(element):
         # Map [0, 255] to [-1, 1].
         images = (tf.cast(element['image'], tf.float32) - 127.5) / 127.5
         return images
 
-def get_dataset():
-    BATCH_SIZE = 256 #params['batch_size']
-    BUFFER_SIZE = 60000
-    NOISE_DIM = 100 #params['noise_dims']
-
+@gin.configurable
+def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100):
+    print('BATCH SIZE: ', BATCH_SIZE)
+    print('BUFFER SIZE: ', BUFFER_SIZE)
+    print('NOISE DIM: ', NOISE_DIM)
     noise_ds = (tf.data.Dataset.from_tensors(0).repeat().map(lambda _: tf.random.normal([BATCH_SIZE, NOISE_DIM])))
 
     # images_ds = (tfds.load('mnist:3.*.*', split='train')
@@ -93,8 +96,7 @@ def main():
     gan_trainops = GANTrainOps(
         gan_estimator=gan_estimator,
         dataset=get_dataset(),
-        model_slug='mnist-vanilla',
-        epochs=50,
+        # model_slug='mnist-vanilla',
     )
 
     gan_trainops.train()
@@ -102,4 +104,5 @@ def main():
     return gan_estimator
 
 if __name__ == '__main__':
+    gin.parse_config_file('template.gin')
     main()

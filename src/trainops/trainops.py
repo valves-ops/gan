@@ -4,10 +4,10 @@ import time
 import tensorflow as tf
 import tensorflow_gan as tfgan
 import numpy as np
-
+import gin
 import matplotlib.pyplot as plt
 
-
+@gin.configurable
 class GANTrainOps:
     def __init__(
         self,
@@ -16,16 +16,18 @@ class GANTrainOps:
         model_slug,
         epochs=100,
         epochs_per_checkpoint=10,
-        batches_per_evaluation=200,
-        batch_count_for_evalution=10,
+        epochs_per_evaluation=10,
+        batches_per_logging=500,
+        batch_count_for_evaluation=20,
     ):
         self.gan_estimator = gan_estimator
         self.dataset = dataset
         self.model_slug = model_slug
         self.epochs = epochs
         self.epochs_per_checkpoint = epochs_per_checkpoint
-        self.batches_per_evaluation = batches_per_evaluation
-        self.batch_count_for_evalution = batch_count_for_evalution
+        self.epochs_per_evaluation = epochs_per_evaluation
+        self.batches_per_logging = batches_per_logging
+        self.batch_count_for_evaluation = batch_count_for_evaluation
 
         self.checkpoint_manager = tf.train.CheckpointManager(
             self.gan_estimator.checkpoint,
@@ -33,21 +35,30 @@ class GANTrainOps:
             max_to_keep=3,
         )
 
+        # Create metrics buffers
+        # self.metrics_buffer = {}
+        # for metric_name in self.gan_estimator.evaluation_metrics:
+        #     self.metrics_buffer.update({metric_name: []})
+        self.metrics_buffer = []
+
+        print('--- GAN Train Ops ---')
+        print('Model Slug: ', self.model_slug)
+        print('Epochs: ', self.epochs)
+        print('Epochs per Checkpoint: ', self.epochs_per_checkpoint)
+        print('Epochs per Evaluation: ', self.epochs_per_evaluation)
+        print('Batches per Logging: ', self.batches_per_logging)
+        print('Batch count for evalution: ', self.batch_count_for_evaluation)
+
     def train(self):
         start_time = time.time()
 
         base_images_latent_vectors = self.get_or_create_base_images_latent_vectors()
 
-        # Create metrics buffers
-        metrics_buffer = {}
-        for metric_name in self.gan_estimator.evaluation_metrics:
-            metrics_buffer.update({metric_name: []})
-
+        batch_number = 0
         print('Starting execution of ', self.epochs, ' epochs.')
         for epoch in range(self.epochs):
             print('Starting Epoch: ', epoch)
             # batches = self.dataset(mode="train")
-            batch_number = 0
             batch_durations = []
             for batch in self.dataset:
                 batch_number += 1
@@ -59,7 +70,7 @@ class GANTrainOps:
                 batch_end_time = time.time()
                 batch_durations.append(batch_end_time - batch_start_time)
 
-                if batch_number % self.batches_per_evaluation == 0:
+                if batch_number % self.batches_per_logging == 0:
                     # Evaluate
                     # metrics = self.gan_estimator.evaluate(self.input_function, self.batch_count_for_evalution)
 
