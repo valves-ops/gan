@@ -27,6 +27,14 @@ class GANEstimator:
 
         self.checkpoint = tf.train.Checkpoint(**models_and_optimizers)
 
+        print('--- GAN Train Ops Setup ---')
+        print('Generator Optimizer Learning Rate: ', 
+                self.component_optimizers['generator'].learning_rate.numpy())
+        print('Losses: ', self.component_losses)
+        print('Optimizers: ', self.component_optimizers)
+        print('Evaluation Metrics: ', self.evaluation_metrics)
+        print('--------------------------')
+
     def train_step(self, batch):
         tf_train_step_function = self.gan_model.train_step_function
         model_struct = {
