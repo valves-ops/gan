@@ -1,0 +1,48 @@
+# Dataset Parameters
+DATASET = 'MNIST'
+get_dataset.BATCH_SIZE = 256
+get_dataset.BUFFER_SIZE = 60000
+get_dataset.NOISE_DIM = 100
+img_input_shape = (28, 28, 1)
+
+# Training
+GANTrainOps.epochs = 50
+GANTrainOps.epochs_per_checkpoint = 10
+GANTrainOps.epochs_per_evaluation = 10
+GANTrainOps.batches_per_logging = 200
+GANTrainOps.batch_count_for_evaluation = 10
+
+# Loss
+# component_losses = {}
+
+# component_optimizers = {
+#     'generator' : @generator/tf.keras.optimizers.Adam,
+#     'discriminator': @discriminator/tf.keras.optimizers.Adam
+# }
+# @discriminator/tf.keras.optimizers.Adam.learning_rate = 1e-5
+# @discriminator/tf.keras.optimizers.Adam.learning_rate = 1e-5
+
+
+## Model
+GANTrainOps.model_slug = 'mnist-vanilla-gin'
+
+# Architecture
+
+
+# Filter Size: (5,5) (4,4) (3,3)
+
+# Batch Normalization
+# Use/ Dont Use
+# Momemtum
+
+# Dropout
+# Use / Dont Use
+# Dropout Rate
+
+# LeakyReLU
+# alpha
+
+
+
+
+
