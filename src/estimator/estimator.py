@@ -40,12 +40,12 @@ class GANEstimator:
         tf_train_step_function(batch, model_struct)
 
     # TODO: Update evaluation function
-    def evaluate(self, input_function, batch_count):
+    def evaluate(self, dataset, batch_count):
         metrics = {}
         for metric_name in self.evaluation_metrics:
             metrics.update({metric_name: tf.keras.metrics.Mean()})
 
-        for count, batch in enumerate(input_function("train")):
+        for count, batch in enumerate(dataset):
             self.gan_model.evaluate(batch)
             # Calculate Metrics
             for metric_name, metric_function in self.evaluation_metrics.items():
