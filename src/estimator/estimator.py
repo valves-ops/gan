@@ -1,6 +1,8 @@
 import tensorflow as tf
+import gin
 
 
+@gin.configurable
 class GANEstimator:
     def __init__(
         self,

@@ -71,7 +71,8 @@ def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100):
 
     return tf.data.Dataset.zip((noise_ds, image_ds))
 
-def main():
+def main(gin_filename):
+    gin.parse_config_file(gin_filename)
     gan_model = GANModel(
         generator=mnist_dcgans.build_mnist_generator(),
         discriminator=mnist_dcgans.build_mnist_discriminator(),
@@ -80,14 +81,6 @@ def main():
 
     gan_estimator = GANEstimator(
         gan_model=gan_model,
-        component_losses={
-            'generator' : binary_cross_entropy_generator_loss,
-            'discriminator' : binary_cross_entropy_discriminator_loss,
-        },
-        component_optimizers={
-            'generator' : tf.keras.optimizers.Adam(1e-5),
-            'discriminator' : tf.keras.optimizers.Adam(1e-5),
-        },
         evaluation_metrics={
             'frechet_distance' :  frechet_distance
         },
@@ -96,7 +89,6 @@ def main():
     gan_trainops = GANTrainOps(
         gan_estimator=gan_estimator,
         dataset=get_dataset(),
-        # model_slug='mnist-vanilla',
     )
 
     gan_trainops.train()
@@ -104,5 +96,5 @@ def main():
     return gan_estimator
 
 if __name__ == '__main__':
-    gin.parse_config_file('template.gin')
-    main()
+    gin.external_configurable(tf.keras.optimizers.Adam)
+    main('template.gin')
