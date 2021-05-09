@@ -39,3 +39,58 @@ def dcgan_train_step(batch, model_struct):
 
     generator_optimizer.apply_gradients(zip(generator_gradient, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(discriminator_gradient, discriminator.trainable_variables))
+
+
+def build_dcgan_generator(progression, progression_morphology, capacity_profile, 
+                          total_capacity, depth, initial_dimension, generated_image_dimension,
+                          latent_space_dimension):
+    """
+        progression: the linear coefficient that determines how rapidly the dimensions of layers are increased
+        progression_morphology: the function morphology of the dimension progression
+        capacity_profile: how capacity (number of parameters) is distributed across the layers (linear incresing, constant, linear decreasing)
+        total_capacity: total parameter count of the convolutional/deconvolutional layers
+        depth: number of layers
+        initial_dimension: dimension of the first layer
+        generated_image_dimension: dimension of the generated image, ie dimension of the final layer
+        latent_space_dimension: dimension of the latent space
+    """
+
+    #
+    capacity_per_layer = evaluate_capacity_per_layer(capacity_profile, total_capacity, depth)
+
+    dimensions_per_layer = evaluate_dimensions_per_layer(capacity_per_layer, initial_dimension, final_dimension, progression, progression_morphology)
+
+    filter_depth_per_layer = evaluate_filter_depth_per_layer(capacity_per_layer, dimensions_per_layer)
+
+    #
+    # Kernel Size will be fixed and GIN file defined
+    stride_per_layer, padding_per_layer = evaluate = convolutional_layer_parameters(dimensions_per_layer)
+
+    # Build Model
+    # Input Layer
+    input_layer = keras.layers.Input(latent_space_dimension)
+    dense_layer = reshaped_dense_layer(input_layer)
+    previous_layer = dense_layer
+
+    for layer in range(depth):
+        if layer == depth-1:
+            activation = 'tanh' # fixed
+        else:
+            activation = 'relu' # or another
+        deconv_layer = deconvolutional_layer(
+                            previous_layer=previous_layer,
+                            filter_depth=filter_depth_per_layer[layer],
+                            stride=stride_per_layer[layer],
+                            # kernel_size, set by GIN file
+                            padding=padding_per_layer[layer],
+                            activation=
+                        )
+        previous_layer = deconv_layer
+    
+    output_layer = previous_layer
+
+    generator = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+    return generator
+
+
+
