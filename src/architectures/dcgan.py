@@ -40,6 +40,21 @@ def dcgan_train_step(batch, model_struct):
     generator_optimizer.apply_gradients(zip(generator_gradient, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(discriminator_gradient, discriminator.trainable_variables))
 
+def evaluate_capacity_per_layer(capacity_profile, total_capacity, depth):
+    raise NotImplementedError
+
+def evaluate_dimensions_per_layer(capacity_per_layer, initial_dimension, final_dimension, progression, progression_morphology):
+    raise NotImplementedError
+
+def evaluate_filter_depth_per_layer(capacity_per_layer, dimensions_per_layer):
+    raise NotImplementedError
+
+def convolutional_layer_parameters(dimensions_per_layer):
+    raise NotImplementedError
+
+def deconvolutional_layer(previous_layer, filter_depth, stride, kernel_size, padding, activation):
+    raise NotImplementedError
+
 
 def build_dcgan_generator(progression, progression_morphology, capacity_profile, 
                           total_capacity, depth, initial_dimension, generated_image_dimension,
@@ -83,7 +98,7 @@ def build_dcgan_generator(progression, progression_morphology, capacity_profile,
                             stride=stride_per_layer[layer],
                             # kernel_size, set by GIN file
                             padding=padding_per_layer[layer],
-                            activation=
+                            activation=activation
                         )
         previous_layer = deconv_layer
     
