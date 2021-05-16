@@ -2,7 +2,9 @@ import tensorflow as tf
 
 from anytree import Node, RenderTree, NodeMixin
 import anytree
+import numpy as np
 from scipy import integrate
+from scipy.optimize import minimize_scalar
 
 
 @tf.function
@@ -52,6 +54,7 @@ def dcgan_train_step(batch, model_struct):
     )
 
 
+###############
 class Convolution(NodeMixin):
     def __init__(self, s, k, p, op, i=None, parent=None, children=None):
         if parent:
@@ -156,11 +159,23 @@ def get_sorted_dimension_profiles_with_kurtosis(
 def get_dimension_profile_with_closest_kurtosis(
     kurtosis, sorted_dimension_profiles_kurtosis
 ):
-    raise NotImplementedError
+    sorted_kurtosis = [
+        dimension_profile[0] for dimension_profile in sorted_dimension_profiles_kurtosis
+    ]
+    sorted_kurtosis = np.array(sorted_kurtosis)
+    idx = sorted_kurtosis.searchsorted(kurtosis)
+    idx = np.clip(idx, 1, len(sorted_kurtosis) - 1)
+    left = sorted_kurtosis[idx - 1]
+    right = sorted_kurtosis[idx]
+    idx -= kurtosis - left < right - kurtosis
+    return sorted_dimension_profiles_kurtosis[idx]
 
 
-def evaluate_capacity_per_layer(capacity_profile, total_capacity, depth):
-    raise NotImplementedError
+def convert_padding_tf_argument(padding):
+    if padding == 0:
+        return "valid"
+    else:
+        return "same"
 
 
 def evaluate_dimensions_per_layer(kurtosis, initial_dimension, target_dimension, depth):
@@ -171,10 +186,77 @@ def evaluate_dimensions_per_layer(kurtosis, initial_dimension, target_dimension,
     dimension_profile = get_dimension_profile_with_closest_kurtosis(
         kurtosis, sorted_dimension_profiles_kurtosis
     )
-    return dimension_profile
+    layer_nodes = dimension_profile[1]
+    return layer_nodes
 
 
-def evaluate_filter_depth_per_layer(capacity_per_layer, dimensions_per_layer):
+#############
+def layer_capacity(kernel_dim, channels, filters, bias=True):
+    return kernel_dim * kernel_dim * filters * channels + bias * filters
+
+
+def calculate_network_capacity(kernel_dim, filters_profile):
+    TC = 0
+    previous_layers_channel = filters_profile[0]
+    for filter in filters_profile[1:]:
+        TC += layer_capacity(kernel_dim, previous_layers_channel, filter, bias=True)
+        previous_layers_channel = filter
+    return TC
+
+
+def get_filters_profile(kurtosis, depth, initial_size, target_size):
+    x1 = depth
+    y1 = target_size
+    y2 = initial_size
+    delta = (y1 - y2) / x1
+    alpha = kurtosis * delta / x1
+    beta = (y1 - y2) / x1 - alpha * x1
+    gama = y2
+    x = np.array(range(depth + 1))
+    y = alpha * x ** 2 + beta * x + gama
+    y = np.ceil(y)
+    return y
+
+
+def capacity_opt_function(
+    kurtosis,
+    target_capacity,
+    kernel_dim,
+    depth,
+    initial_filter_depth,
+    target_filter_depth,
+):
+    filters_profile = get_filters_profile(
+        kurtosis, depth, initial_filter_depth, target_filter_depth
+    )
+    calculated_capacity = calculate_network_capacity(kernel_dim, filters_profile)
+    return np.abs(target_capacity - calculated_capacity)
+
+
+def evaluate_filter_depth_per_layer(
+    total_capacity, kernel_dim, depth, initial_filter_depth, target_filter_depth
+):
+    result = minimize_scalar(
+        capacity_opt_function,
+        bounds=(-1, 1),
+        args=(
+            total_capacity,
+            kernel_dim,
+            depth,
+            initial_filter_depth,
+            target_filter_depth,
+        ),
+        method="bounded",
+    )
+    estimated_kurtosis = result.x
+    filters_profile = get_filters_profile(
+        estimated_kurtosis, depth, initial_filter_depth, target_filter_depth
+    )
+    return filters_profile
+
+
+############
+def evaluate_capacity_per_layer(capacity_profile, total_capacity, depth):
     raise NotImplementedError
 
 
@@ -189,53 +271,40 @@ def deconvolutional_layer(
 
 
 def build_dcgan_generator(
-    progression,
-    progression_morphology,
-    capacity_profile,
+    dimension_progression_kurtosis,
+    filters_progression_kurtosis,
     total_capacity,
     depth,
+    kernel_dimension,
     initial_dimension,
     target_dimension,
-    generated_image_dimension,
     latent_space_dimension,
 ):
     """
-    progression: the linear coefficient that determines how rapidly the dimensions of layers are increased
-    progression_morphology: the function morphology of the dimension progression
+    dimension_progression_kurtosis: value between -1 and 1 that determines the morphology of dimensions progression ("exponential", "linear", "logarithmic")
+    filters_progression_kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
     capacity_profile: how capacity (number of parameters) is distributed across the layers (linear incresing, constant, linear decreasing)
     total_capacity: total parameter count of the convolutional/deconvolutional layers
     depth: number of layers
     initial_dimension: dimension of the first layer
-    generated_image_dimension: dimension of the generated image, ie dimension of the final layer
+    target_dimension: dimension of the generated image, ie dimension of the final layer
     latent_space_dimension: dimension of the latent space
     """
-
-    #
-    capacity_per_layer = evaluate_capacity_per_layer(
-        capacity_profile, total_capacity, depth
-    )
-
     dimensions_per_layer = evaluate_dimensions_per_layer(
-        capacity_per_layer,
-        initial_dimension,
-        target_dimension,
-        progression,
-        progression_morphology,
+        dimension_progression_kurtosis, initial_dimension, target_dimension, depth
     )
 
     filter_depth_per_layer = evaluate_filter_depth_per_layer(
-        capacity_per_layer, dimensions_per_layer
-    )
-
-    #
-    # Kernel Size will be fixed and GIN file defined
-    stride_per_layer, padding_per_layer = evaluate = convolutional_layer_parameters(
-        dimensions_per_layer
+        total_capacity,
+        kernel_dimension,
+        depth,
+        initial_filter_depth,  # maybe use this as the TC adjustable parameter
+        target_dimension[2],
     )
 
     # Build Model
     # Input Layer
-    input_layer = keras.layers.Input(latent_space_dimension)
+    input_layer = tf.keras.layers.Input(latent_space_dimension)
     dense_layer = reshaped_dense_layer(input_layer)
     previous_layer = dense_layer
 
@@ -247,9 +316,10 @@ def build_dcgan_generator(
         deconv_layer = deconvolutional_layer(
             previous_layer=previous_layer,
             filter_depth=filter_depth_per_layer[layer],
-            stride=stride_per_layer[layer],
-            # kernel_size, set by GIN file
-            padding=padding_per_layer[layer],
+            stride=dimensions_per_layer[layer].s,
+            kernel_size=kernel_dimension,
+            padding=convert_padding_tf_argument(dimensions_per_layer[layer].p),
+            output_padding=dimensions_per_layer[layer].op,
             activation=activation,
         )
         previous_layer = deconv_layer
