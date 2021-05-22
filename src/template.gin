@@ -2,6 +2,7 @@ import gin.tf.external_configurables
 
 ### Dataset Parameters ###
 DATASET = 'MNIST'
+LATENT_SPACE_DIM = 100
 get_dataset.BATCH_SIZE = 256
 get_dataset.BUFFER_SIZE = 60000
 get_dataset.NOISE_DIM = 100
@@ -33,6 +34,14 @@ discriminator/tf.keras.optimizers.Adam.learning_rate = 1e-5
 GANTrainOps.model_slug = 'mnist-vanilla-gin'
 
 ## Architecture (Layers, Filter size, strides)
+build_dcgan_generator.dimension_progression_kurtosis = 0.25
+build_dcgan_generator.filters_depth_progression_kurtosis = 0
+build_dcgan_generator.total_capacity = 1.25e6
+build_dcgan_generator.depth = 3
+build_dcgan_generator.kernel_dimension = 5
+build_dcgan_generator.initial_dimension = 7
+build_dcgan_generator.target_dimension = (28, 1)
+build_dcgan_generator.latent_space_dimension = LATENT_SPACE_DIM
 
 ## Architectural Features
 # Kernel Size [(5,5) (4,4) (3,3)]

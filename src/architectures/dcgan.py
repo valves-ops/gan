@@ -1,4 +1,5 @@
 import tensorflow as tf
+import gin
 
 from anytree import Node, RenderTree, NodeMixin
 import anytree
@@ -335,6 +336,7 @@ def deconvolutional_layer(
     return activation
 
 
+@gin.configurable
 def build_dcgan_generator(
     dimension_progression_kurtosis,
     filters_depth_progression_kurtosis,
