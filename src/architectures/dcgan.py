@@ -84,18 +84,22 @@ def generate_dimension_tree(input_dimension, target_dimension, depth):
         layer_nodes = []
         for parent_node in layers[layer]:
             for s in s_space:
-                for k in k_space:
-                    for p in p_space:
-                        for op in op_space:
-                            conv = Convolution(s, k, p(k), op, i=parent_node.o)
-                            if conv.o >= input_dimension and conv.o <= target_dimension:
+                for op in op_space:
+                    if op < s:  # for some reason op has to be lower than s
+                        for k in k_space:
+                            for p in p_space:
+                                conv = Convolution(s, k, p(k), op, i=parent_node.o)
                                 if (
-                                    layer == depth - 1
-                                    and conv.o == target_dimension
-                                    or layer < depth - 1
+                                    conv.o >= input_dimension
+                                    and conv.o <= target_dimension
                                 ):
-                                    conv.parent = parent_node
-                                    layer_nodes.append(conv)
+                                    if (
+                                        layer == depth - 1
+                                        and conv.o == target_dimension
+                                        or layer < depth - 1
+                                    ):
+                                        conv.parent = parent_node
+                                        layer_nodes.append(conv)
         layers.append(layer_nodes)
 
     return layers
@@ -212,23 +216,23 @@ def calculate_network_capacity(
     dense_layer_batch_norm_capacity = 4 * dense_layer_output_size
     TC = dense_layer_capacity + dense_layer_batch_norm_capacity
     previous_layers_channel = filters_profile[0]
-    for filter in filters_profile[1:]:
+    for filter in filters_profile:  # [1:]:
         TC += layer_capacity(kernel_dim, previous_layers_channel, filter, bias=True)
         previous_layers_channel = filter
     return TC
 
 
 def get_filters_profile(kurtosis, depth, initial_size, target_size):
-    x1 = depth
+    x1 = depth - 1
     y1 = target_size
     y2 = initial_size
     delta = (y1 - y2) / x1
     alpha = kurtosis * delta / x1
     beta = (y1 - y2) / x1 - alpha * x1
     gama = y2
-    x = np.array(range(depth + 1))
+    x = np.array(range(depth))
     y = alpha * x ** 2 + beta * x + gama
-    y = int(np.ceil(y))
+    y = np.ceil(y).astype(int)
     return y
 
 
@@ -341,7 +345,7 @@ def build_dcgan_generator(
     latent_space_dimension: dimension of the latent space
     """
     dimensions_per_layer = evaluate_dimensions_per_layer(
-        dimension_progression_kurtosis, initial_dimension, target_dimension, depth
+        dimension_progression_kurtosis, initial_dimension, target_dimension[0], depth
     )
 
     filter_depth_per_layer = evaluate_filter_depth_per_layer(
@@ -349,7 +353,7 @@ def build_dcgan_generator(
         kernel_dimension,
         depth,
         filters_depth_progression_kurtosis,
-        target_dimension[2],
+        target_dimension[1],
         dimensions_per_layer,
         latent_space_dimension,
     )
@@ -357,7 +361,9 @@ def build_dcgan_generator(
     # Build Model
     # Input Layer
     input_layer = tf.keras.layers.Input(latent_space_dimension)
-    dense_layer = reshaped_dense_layer(input_layer)
+    dense_layer = reshaped_dense_layer(
+        input_layer, dimensions_per_layer[0].parent.o, filter_depth_per_layer[0]
+    )
     previous_layer = dense_layer
 
     for layer in range(depth):
