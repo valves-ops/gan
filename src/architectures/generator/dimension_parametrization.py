@@ -23,6 +23,13 @@ class Convolution(NodeMixin):
 
 
 def generate_dimension_tree(input_dimension, target_dimension, depth):
+    """
+    input_dimension: integer, dimension of the reshaped dense layer, height/width of the input tensor
+    target_dimension: integer, dimension of the output tensor
+    depth: count of deconvolution layers
+
+    Returns a list of lists. Each list contains the Convolution objects representing all possible nodes for each layer
+    """
     s_space = [1, 2, 3]
     k_space = [5]
     p_space = [(lambda x: 0), (lambda x: math.floor(x / 2))]
@@ -57,12 +64,31 @@ def generate_dimension_tree(input_dimension, target_dimension, depth):
 
 
 def integrate_dimension_profile(dimension_profile):
+    """
+    Simple numerical integration using the Simpson method
+
+    dimension_profile: list of integers, dimension of each layer
+
+    Return the integral, float?
+    """
     return integrate.simps(dimension_profile)
 
 
 def dimension_profile_kurtosis(
     dimension_profile, initial_dimension, target_dimension, depth
 ):
+    """
+    Calculates the kurtosis of a given dimension profile.
+    The kurtosis is the area under the dimension profile normalized in the range of
+    the maximum and minimum theoretical areas of the given progression boundaries
+
+    dimension_profile: list of integers, dimension of each layer
+    initial_dimension: integer, dimension of the input tensor
+    target_dimension: integer, dimension of the output tensor
+    depth: integer, number of deconvolutional layers
+
+    Returns kurtosis: float between -1 and 1
+    """
     a = initial_dimension * depth
     b = target_dimension * depth
     m = (a + b) / 2
@@ -75,17 +101,30 @@ def dimension_profile_kurtosis(
 def get_sorted_dimension_profiles_with_kurtosis(
     layers, initial_dimension, target_dimension, depth
 ):
+    """
+    Extracts from the dimension tree layers the viable dimension progressions, or dimension profiles,
+    ie the dimension profiles that have the specified depth.
+    Calculates the kurtosis of each dimension profile, zip it with the dimension profile and sort them by
+    the kurtosis.
+
+    layers: output of the generate_dimension_tree function
+    intial_dimension: integer, dimension of the reshaped dense layer, height/width of the input tensor
+    target_dimension: integer, dimension of the output tensor
+    depth: count of deconvolution layers
+    """
     downwards = 2
+
+    # Walk the tree to get progressions
     root_node = layers[0][0]
     leaf_nodes_w_target_dim = anytree.search.findall_by_attr(
         root_node, str(target_dimension)
     )
-
     w = anytree.walker.Walker()
     paths_from_root_to_leaf_nodes = [
         w.walk(root_node, leaf) for leaf in leaf_nodes_w_target_dim
     ]
 
+    # Transform nodes into dimensions profile lists and filter the correct depth ones
     dimension_profiles = [
         ([initial_dimension] + [layer.o for layer in path[downwards]], path[downwards])
         for path in paths_from_root_to_leaf_nodes
@@ -94,6 +133,7 @@ def get_sorted_dimension_profiles_with_kurtosis(
         filter(lambda x: len(x[0]) == depth + 1, dimension_profiles)
     )
 
+    # Calculate and zip the kurtosis of each dimensions profile
     dimension_profiles_kurtosis = [
         (
             dimension_profile_kurtosis(
@@ -104,6 +144,7 @@ def get_sorted_dimension_profiles_with_kurtosis(
         for dimension_profile in dimension_profiles
     ]
 
+    # Sort dimensions profile by kurtosis
     sorted_dimension_profiles_kurtosis = sorted(
         dimension_profiles_kurtosis, key=(lambda x: x[0])
     )
@@ -114,15 +155,25 @@ def get_sorted_dimension_profiles_with_kurtosis(
 def get_dimension_profile_with_closest_kurtosis(
     kurtosis, sorted_dimension_profiles_kurtosis
 ):
+    """
+    Find the closest kurtosis dimensions profile in a sorted dimensions profiles list given a kurtosis value
+
+    kurtosis: value between -1 and 1 that determines the morphology of dimensions progression ("exponential", "linear", "logarithmic")
+    sorted_dimension_profiles_kurtosis: sorted dimensions profiles list (output of the get_sorted_dimension_profiles_with_kurtosis function)
+    """
+
     sorted_kurtosis = [
         dimension_profile[0] for dimension_profile in sorted_dimension_profiles_kurtosis
     ]
     sorted_kurtosis = np.array(sorted_kurtosis)
+
     idx = sorted_kurtosis.searchsorted(kurtosis)
     idx = np.clip(idx, 1, len(sorted_kurtosis) - 1)
     left = sorted_kurtosis[idx - 1]
     right = sorted_kurtosis[idx]
+
     idx -= kurtosis - left < right - kurtosis
+
     return sorted_dimension_profiles_kurtosis[idx]
 
 
@@ -134,6 +185,18 @@ def convert_padding_tf_argument(padding):
 
 
 def evaluate_dimensions_per_layer(kurtosis, initial_dimension, target_dimension, depth):
+    """
+    Given a kurtosis value, input tensor dimension, output tensor dimensions and depth of the generator,
+    calculates a dimension profile, ie the dimension of each layer of the generator.
+
+    kurtosis: value between -1 and 1 that determines the morphology of dimensions progression ("exponential", "linear", "logarithmic")
+    initial_dimension: integer, dimension of the reshaped dense layer, height/width of the input tensor
+    target_dimension: integer, dimension of the output tensor
+    depth: count of deconvolution layers
+
+    Returns a list of nodes, ie Convolution objects
+    """
+
     layers = generate_dimension_tree(initial_dimension, target_dimension, depth)
     sorted_dimension_profiles_kurtosis = get_sorted_dimension_profiles_with_kurtosis(
         layers, initial_dimension, target_dimension, depth

@@ -5,6 +5,14 @@ from scipy.optimize import minimize_scalar
 
 
 def layer_capacity(kernel_dim, channels, filters, bias=True):
+    """
+    Calculates the capacity (parameter count) of a deconvolutional layer
+
+    kernel_dim: integer, kernel dimension of the deconvolutional layer
+    channels: integer, number of channels of the input tensor
+    filters: integer, number of filters of the deconvolutional layer
+    bias: boolean, wether the deconvolutional layer uses or not a bias term
+    """
     conv_layer_capacity = kernel_dim * kernel_dim * filters * channels + bias * filters
     batch_norm_capacity = 4 * filters
     layer_capacity = conv_layer_capacity + batch_norm_capacity
@@ -14,6 +22,14 @@ def layer_capacity(kernel_dim, channels, filters, bias=True):
 def calculate_network_capacity(
     kernel_dim, filters_profile, dimensions_per_layer, latent_space_dimension
 ):
+    """
+    Calculates the capacity (parameter count) of a entire network
+
+    kernel_dim: integer, kernel dimension used across the network
+    filters_profile: list of integers representing the number of filters of each deconvolutional layer
+    dimensions_per_layer: list of Convolution Objects representing each deconvolutional layer
+    latent_space_dimension: integer represeting the latent space vector length
+    """
     first_conv_layer_dimensions_input = dimensions_per_layer[0].parent.o
     dense_layer_output_size = (
         first_conv_layer_dimensions_input
@@ -32,6 +48,14 @@ def calculate_network_capacity(
 
 
 def get_filters_profile(kurtosis, depth, initial_size, target_size):
+    """
+    Calculates a list of filter numbers according to a given kurtosis value
+
+    kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
+    depth: integer representing the number of deconvolutional layers in the generator
+    initial_size: amount of filters in the first layer of the generator
+    target_size: amount of filters in the last layer of the generator, ie output tensor number of channels
+    """
     x1 = depth - 1
     y1 = target_size
     y2 = initial_size
@@ -55,6 +79,20 @@ def capacity_opt_function(
     dimensions_per_layer,
     latent_space_dimension,
 ):
+    """
+    Calculates distance between the target capacity of the generator and the capacity that the generator
+    would have if constructed with the provided parameters.
+    This function is used to optimize the initial_filter_depth parameter
+
+    initial_filter_depth: integer represeting the number of filters in the first deconvolutional layer
+    target_capacity: total capacity (parameter count) the generator must have
+    kernel_dim: integer, kernel dimension of the deconvolutional layer
+    depth: integer representing the number of deconvolutional layers in the generator
+    kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
+    target_filter_depth: integer represeting the number of filters in the last deconvolutional layer
+    dimensions_per_layer: list of Convolution Objects representing each deconvolutional layer
+    latent_space_dimension: integer represeting the latent space vector length
+    """
     filters_profile = get_filters_profile(
         kurtosis,
         depth,
@@ -76,6 +114,18 @@ def evaluate_filter_depth_per_layer(
     dimensions_per_layer,
     latent_space_dimension,
 ):
+    """
+    Given the total capacity desired for the generator, a kurtosis for the filters progression, the depth of the generator and
+    the output tensor number of channels, calculates the filters progression.
+
+    total_capacity: total capacity (parameter count) the generator must have
+    kernel_dim: integer, kernel dimension of the deconvolutional layer
+    depth: integer representing the number of deconvolutional layers in the generator
+    kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
+    target_filter_depth: integer represeting the number of filters in the last deconvolutional layer, ie the output tensor number of channels
+    dimensions_per_layer: list of Convolution Objects representing each deconvolutional layer
+    latent_space_dimension: integer represeting the latent space vector length
+    """
     result = minimize_scalar(
         capacity_opt_function,
         bounds=(1, 2048),

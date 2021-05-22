@@ -157,3 +157,27 @@ def build_dcgan_generator(
 
     generator = tf.keras.Model(inputs=input_layer, outputs=output_layer)
     return generator
+
+
+@gin.configurable
+def build_dcgan_discriminator(
+    dimension_progression_kurtosis,
+    filters_progression_kurtosis,
+    capacity_profile,
+    total_capacity,
+    depth,
+    initial_dimension,
+    target_dimension,
+    latent_space_dimension,
+):
+    """
+    dimension_progression_kurtosis: value between -1 and 1 that determines the morphology of dimensions progression ("exponential", "linear", "logarithmic")
+    filters_progression_kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
+    total_capacity: total parameter count of the network
+    depth: number of layers
+    initial_dimension: dimension of the first layer
+    target_dimension: dimension of the generated image, ie dimension of the final layer
+    latent_space_dimension: dimension of the latent space
+    """
+
+    raise NotImplementedError
