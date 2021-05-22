@@ -282,6 +282,17 @@ def evaluate_filter_depth_per_layer(
         method="bounded",
     )
     estimated_initial_filter_depth = result.x
+
+    # filters_profile = get_filters_profile(
+    #     kurtosis,
+    #     depth,
+    #     estimated_initial_filter_depth,
+    #     target_filter_depth,
+    # )
+    # calculated_capacity = calculate_network_capacity(
+    #     kernel_dim, filters_profile, dimensions_per_layer, latent_space_dimension
+    # )
+
     filters_profile = get_filters_profile(
         kurtosis, depth, estimated_initial_filter_depth, target_filter_depth
     )
