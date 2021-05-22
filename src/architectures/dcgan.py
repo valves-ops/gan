@@ -61,11 +61,11 @@ class Convolution(NodeMixin):
             i = parent.o
         o = (i - 1) * s + k - 2 * p + op
         self.name = str(o)
-        self.o = o
-        self.s = s
-        self.k = k
-        self.p = p
-        self.op = open
+        self.o = int(o)
+        self.s = int(s)
+        self.k = int(k)
+        self.p = int(p)
+        self.op = int(op)
         self.parent = parent
         if children:
             self.children = children
@@ -192,11 +192,25 @@ def evaluate_dimensions_per_layer(kurtosis, initial_dimension, target_dimension,
 
 #############
 def layer_capacity(kernel_dim, channels, filters, bias=True):
-    return kernel_dim * kernel_dim * filters * channels + bias * filters
+    conv_layer_capacity = kernel_dim * kernel_dim * filters * channels + bias * filters
+    batch_norm_capacity = 4 * filters
+    layer_capacity = conv_layer_capacity + batch_norm_capacity
+    return layer_capacity
 
 
-def calculate_network_capacity(kernel_dim, filters_profile):
-    TC = 0
+def calculate_network_capacity(
+    kernel_dim, filters_profile, dimensions_per_layer, latent_space_dimension
+):
+    first_conv_layer_dimensions_input = dimensions_per_layer[0].parent.o
+    dense_layer_output_size = (
+        first_conv_layer_dimensions_input
+        * first_conv_layer_dimensions_input
+        * filters_profile[0]
+    )
+    dense_layer_capacity = dense_layer_output_size * (latent_space_dimension + 1)
+
+    dense_layer_batch_norm_capacity = 4 * dense_layer_output_size
+    TC = dense_layer_capacity + dense_layer_batch_norm_capacity
     previous_layers_channel = filters_profile[0]
     for filter in filters_profile[1:]:
         TC += layer_capacity(kernel_dim, previous_layers_channel, filter, bias=True)
@@ -214,50 +228,71 @@ def get_filters_profile(kurtosis, depth, initial_size, target_size):
     gama = y2
     x = np.array(range(depth + 1))
     y = alpha * x ** 2 + beta * x + gama
-    y = np.ceil(y)
+    y = int(np.ceil(y))
     return y
 
 
 def capacity_opt_function(
-    kurtosis,
+    initial_filter_depth,
     target_capacity,
     kernel_dim,
     depth,
-    initial_filter_depth,
+    kurtosis,
     target_filter_depth,
+    dimensions_per_layer,
+    latent_space_dimension,
 ):
     filters_profile = get_filters_profile(
-        kurtosis, depth, initial_filter_depth, target_filter_depth
+        kurtosis,
+        depth,
+        initial_filter_depth,
+        target_filter_depth,
     )
-    calculated_capacity = calculate_network_capacity(kernel_dim, filters_profile)
+    calculated_capacity = calculate_network_capacity(
+        kernel_dim, filters_profile, dimensions_per_layer, latent_space_dimension
+    )
     return np.abs(target_capacity - calculated_capacity)
 
 
 def evaluate_filter_depth_per_layer(
-    total_capacity, kernel_dim, depth, initial_filter_depth, target_filter_depth
+    total_capacity,
+    kernel_dim,
+    depth,
+    kurtosis,
+    target_filter_depth,
+    dimensions_per_layer,
+    latent_space_dimension,
 ):
     result = minimize_scalar(
         capacity_opt_function,
-        bounds=(-1, 1),
+        bounds=(1, 2048),
         args=(
             total_capacity,
             kernel_dim,
             depth,
-            initial_filter_depth,
+            kurtosis,
             target_filter_depth,
+            dimensions_per_layer,
+            latent_space_dimension,
         ),
         method="bounded",
     )
-    estimated_kurtosis = result.x
+    estimated_initial_filter_depth = result.x
     filters_profile = get_filters_profile(
-        estimated_kurtosis, depth, initial_filter_depth, target_filter_depth
+        kurtosis, depth, estimated_initial_filter_depth, target_filter_depth
     )
     return filters_profile
 
 
 ############
-def evaluate_capacity_per_layer(capacity_profile, total_capacity, depth):
-    raise NotImplementedError
+def reshaped_dense_layer(previous_layer, dimension, filters):
+    dense_layer = tf.keras.layers.Dense(
+        units=dimension * dimension * filters, activation=tf.nn.relu
+    )(previous_layer)
+    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=0.9)(dense_layer)
+    activation = tf.keras.layers.Activation("relu")(batch_norm_layer)
+    reshape_layer = tf.keras.layers.Reshape((dimension, dimension, filters))(activation)
+    return reshape_layer
 
 
 def convolutional_layer_parameters(dimensions_per_layer):
@@ -265,14 +300,29 @@ def convolutional_layer_parameters(dimensions_per_layer):
 
 
 def deconvolutional_layer(
-    previous_layer, filter_depth, stride, kernel_size, padding, activation
+    previous_layer,
+    filter_depth,
+    stride,
+    kernel_size,
+    padding,
+    output_padding,
+    activation,
 ):
-    raise NotImplementedError
+    deconv_layer = tf.keras.layers.Conv2DTranspose(
+        kernel_size=kernel_size,
+        filters=filter_depth,
+        strides=stride,
+        output_padding=output_padding,
+        padding=padding,
+    )(previous_layer)
+    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=0.9)(deconv_layer)
+    activation = tf.keras.layers.LeakyReLU(alpha=0.1)(batch_norm_layer)
+    return activation
 
 
 def build_dcgan_generator(
     dimension_progression_kurtosis,
-    filters_progression_kurtosis,
+    filters_depth_progression_kurtosis,
     total_capacity,
     depth,
     kernel_dimension,
@@ -298,8 +348,10 @@ def build_dcgan_generator(
         total_capacity,
         kernel_dimension,
         depth,
-        initial_filter_depth,  # maybe use this as the TC adjustable parameter
+        filters_depth_progression_kurtosis,
         target_dimension[2],
+        dimensions_per_layer,
+        latent_space_dimension,
     )
 
     # Build Model
