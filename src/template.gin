@@ -41,7 +41,7 @@ build_dcgan_generator.depth = 3
 build_dcgan_generator.kernel_dimension = 5
 build_dcgan_generator.initial_dimension = 7
 build_dcgan_generator.target_dimension = (28, 1)
-build_dcgan_generator.latent_space_dimension = LATENT_SPACE_DIM
+build_dcgan_generator.latent_space_dimension = %LATENT_SPACE_DIM
 
 ## Architectural Features
 # Kernel Size [(5,5) (4,4) (3,3)]

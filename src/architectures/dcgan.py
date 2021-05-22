@@ -4,6 +4,7 @@ import gin
 from anytree import Node, RenderTree, NodeMixin
 import anytree
 import numpy as np
+import math
 from scipy import integrate
 from scipy.optimize import minimize_scalar
 
