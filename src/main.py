@@ -11,7 +11,6 @@ from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cro
 from trainops.metrics import frechet_distance
 from trainops.trainops import GANTrainOps
 
-
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
@@ -41,7 +40,7 @@ def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100):
 def main(gin_filename):
     gin.parse_config_file(gin_filename)
     gan_model = GANModel(
-        generator=mnist_dcgans.build_mnist_generator(),
+        generator=dcgan.build_dcgan_generator(),
         discriminator=mnist_dcgans.build_mnist_discriminator(),
         train_step_function=dcgan.dcgan_train_step
     )
