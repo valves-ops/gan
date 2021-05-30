@@ -1,6 +1,7 @@
 import os
 import time
 
+import wandb
 import tensorflow as tf
 import tensorflow_gan as tfgan
 import numpy as np
@@ -41,6 +42,12 @@ class GANTrainOps:
         #     self.metrics_buffer.update({metric_name: []})
         self.metrics_buffer = []
 
+        wandb.config.model_slug = self.model_slug
+        wandb.config.epochs = self.epochs
+        wandb.config.epochs_per_checkpoint = self.epochs_per_checkpoint
+        wandb.config.epochs_per_evaluation = self.epochs_per_evaluation
+        wandb.config.batches_per_logging = self.batches_per_logging
+        wandb.config.batch_count_for_evaluation = self.batch_count_for_evaluation
         print('--- GAN Train Ops ---')
         print('Model Slug: ', self.model_slug)
         print('Epochs: ', self.epochs)
@@ -54,6 +61,7 @@ class GANTrainOps:
         start_time = time.time()
 
         base_images_latent_vectors = self.get_or_create_base_images_latent_vectors()
+        # save to wandb
 
         batch_number = 0
         print('Starting execution of ', self.epochs, ' epochs.')
@@ -66,7 +74,15 @@ class GANTrainOps:
 
                 batch_start_time = time.time()
 
+                # generator_loss, discriminator_loss, generator_gradient, discriminator_gradient = 
                 self.gan_estimator.train_step(batch)
+                
+                # wandb.log({'generator_loss': generator_loss.numpy()})
+                # wandb.log({'discriminator_loss': discriminator_loss.numpy()})
+                # wandb.log({'generator_gradient_l0', tf.norm(generator_gradient[0])})
+                # wandb.log({'discriminator_gradient_l0', tf.norm(discriminator_gradient[0])})
+                # wandb.log({'discriminator_gradient_ln', tf.norm(discriminator_gradient[-1])})
+                # wandb.log({'generator_gradient_l0', tf.norm(generator_gradient[-1])})
 
                 batch_end_time = time.time()
                 batch_durations.append(batch_end_time - batch_start_time)
@@ -89,7 +105,12 @@ class GANTrainOps:
                     #     print(f'{metric_name}: {metric.result()}')
 
                     # Generate Images
-                    images = self.gan_estimator.predict(base_images_latent_vectors)
+                    images = self.gan_estimator.predict(base_images_latent_vectors).numpy()
+                    print('IMAGE SHAPE: ', images.shape)
+                    # import ipdb
+                    # ipdb.set_trace()
+                    wandb.log({ 'img_samples': [wandb.Image(image) for image in images],
+                               'batch_number': batch_number, 'epoch': epoch})
                     img_grid = tfgan.eval.python_image_grid(images, grid_shape=(2, 10))
                     plt.axis("off")
                     plt.imshow(np.squeeze(img_grid))
@@ -109,7 +130,9 @@ class GANTrainOps:
                 self.metrics_buffer.append(metrics)
                 print('--- Evaluation Metrics @ EPOCH: ', epoch, ' ---')
                 for metric_name in self.gan_estimator.evaluation_metrics.keys():
-                    print(metric_name, ': ', metrics[metric_name].result().numpy())
+                    metric_value = metrics[metric_name].result().numpy()
+                    wandb.log({metric_name: metric_value, 'batch_number': batch_number, 'epoch': epoch}, commit=True)
+                    print(metric_name, ': ', metric_value)
                 print('------------------------------------------------')
                 # Console Logging
         

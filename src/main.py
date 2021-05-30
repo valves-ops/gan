@@ -3,12 +3,15 @@ import tensorflow_datasets as tfds
 import tensorflow as tf
 
 import gin
+import wandb
 
 from architectures import mnist_dcgans, dcgan
 from model.gan_model import GANModel
 from estimator.estimator import GANEstimator
 from trainops.metrics import frechet_distance
 from trainops.trainops import GANTrainOps
+from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cross_entropy_generator_loss
+
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
@@ -20,6 +23,9 @@ def _preprocess(element):
 
 @gin.configurable
 def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100):
+    wandb.config.batch_size = BATCH_SIZE
+    wandb.config.buffer_size = BUFFER_SIZE
+    wandb.config.noise_dim = NOISE_DIM
     print('--- Dataset Setup ---')
     print('BATCH SIZE: ', BATCH_SIZE)
     print('BUFFER SIZE: ', BUFFER_SIZE)
@@ -38,9 +44,13 @@ def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100):
 
 def main(gin_filename):
     gin.parse_config_file(gin_filename)
+    wandb.init(project='mnist-test-setup',
+               name='google-example-arch-full-params')
     gan_model = GANModel(
-        generator=dcgan.build_dcgan_generator(),
-        discriminator=dcgan.build_dcgan_discriminator(),
+        # generator=dcgan.build_dcgan_generator(),
+        # discriminator=dcgan.build_dcgan_discriminator(),
+        generator=mnist_dcgans.build_mnist_generator(),
+        discriminator=mnist_dcgans.build_mnist_discriminator(),
         train_step_function=dcgan.dcgan_train_step
     )
 

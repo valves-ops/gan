@@ -1,6 +1,6 @@
 import tensorflow as tf
 import gin
-
+import wandb
 import numpy as np
 import math
 
@@ -43,11 +43,12 @@ def dcgan_train_step(batch, model_struct):
 
         generator_loss = generator_loss_function(model_output)
         discriminator_loss = discriminator_loss_function(model_output)
-
+        
     generator_gradient = tape.gradient(generator_loss, generator.trainable_variables)
     discriminator_gradient = tape.gradient(
         discriminator_loss, discriminator.trainable_variables
     )
+
     del tape
 
     generator_optimizer.apply_gradients(
@@ -132,6 +133,14 @@ def build_dcgan_generator(
     target_dimension: dimension of the generated image, ie dimension of the final layer
     latent_space_dimension: dimension of the latent space
     """
+    wandb.config.generator_dimension_progression_kurtosis = dimension_progression_kurtosis
+    wandb.config.generator_filters_depth_progression_kurtosis = filters_depth_progression_kurtosis
+    wandb.config.generator_total_capacity = total_capacity
+    wandb.config.generator_depth = depth
+    wandb.config.generator_kernel_dimension = kernel_dimension
+    wandb.config.generator_initial_dimension = initial_dimension
+    wandb.config.generator_target_dimension = target_dimension
+
     dimensions_per_layer = generator_dimensions.evaluate_dimensions_per_layer(
         dimension_progression_kurtosis, initial_dimension, target_dimension[0], depth
     )
@@ -195,6 +204,14 @@ def build_dcgan_discriminator(
     initial_dimension: dimension of the generated image, ie dimension of the input layer, tuple (HxW, depth)
     target_dimension: dimension of the tensor prior to the dense layer
     """
+    wandb.config.discriminator_dimension_progression_kurtosis = dimension_progression_kurtosis
+    wandb.config.discriminator_filters_depth_progression_kurtosis = filters_depth_progression_kurtosis
+    wandb.config.discriminator_total_capacity = total_capacity
+    wandb.config.discriminator_depth = depth
+    wandb.config.discriminator_kernel_dimension = kernel_dimension
+    wandb.config.discriminator_initial_dimension = initial_dimension 
+    wandb.config.discriminator_target_dimension = target_dimension 
+    wandb.config.discriminator_initial_filter_depth = initial_filter_depth
 
     dimensions_per_layer = discriminator_dimensions.evaluate_dimensions_per_layer(
         dimension_progression_kurtosis, initial_dimension[0], target_dimension, depth
