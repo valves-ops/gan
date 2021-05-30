@@ -118,3 +118,27 @@ def get_dimension_profile_with_closest_kurtosis(
     right = sorted_kurtosis[idx]
     idx -= kurtosis - left < right - kurtosis
     return sorted_dimension_profiles_kurtosis[idx]
+
+
+def evaluate_dimensions_per_layer(kurtosis, initial_dimension, target_dimension, depth):
+    """
+    Given a kurtosis value, input tensor dimension, output tensor dimensions and depth of the generator,
+    calculates a dimension profile, ie the dimension of each layer of the generator.
+
+    kurtosis: value between -1 and 1 that determines the morphology of dimensions progression ("exponential", "linear", "logarithmic")
+    initial_dimension: integer, dimension of the reshaped dense layer, height/width of the input tensor
+    target_dimension: integer, dimension of the output tensor
+    depth: count of deconvolution layers
+
+    Returns a list of nodes, ie Convolution objects
+    """
+
+    layers = generate_dimension_tree(initial_dimension, target_dimension, depth)
+    sorted_dimension_profiles_kurtosis = get_sorted_dimension_profiles_with_kurtosis(
+        layers, initial_dimension, target_dimension, depth
+    )
+    dimension_profile = get_dimension_profile_with_closest_kurtosis(
+        kurtosis, sorted_dimension_profiles_kurtosis
+    )
+    layer_nodes = dimension_profile[1]
+    return layer_nodes

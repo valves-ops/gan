@@ -187,7 +187,7 @@ def build_dcgan_discriminator(
         dimension_progression_kurtosis, initial_dimension[0], target_dimension, depth
     )
 
-    filter_depth_per_layer = generator_filters.evaluate_filter_depth_per_layer(
+    filter_depth_per_layer = discriminator_filters.evaluate_filter_depth_per_layer(
         total_capacity,
         kernel_dimension,
         depth,
