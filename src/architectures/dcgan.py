@@ -92,6 +92,11 @@ def deconvolutional_layer(
     activation = tf.keras.layers.LeakyReLU(alpha=0.1)(batch_norm_layer)
     return activation
 
+def convert_padding_tf_argument(padding):
+    if padding == 0:
+        return "valid"
+    else:
+        return "same"
 
 @gin.configurable
 def build_dcgan_generator(
