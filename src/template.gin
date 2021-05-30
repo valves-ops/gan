@@ -56,7 +56,7 @@ build_dcgan_discriminator.target_dimension = 4
 
 # Batch Normalization
 # Use/ Dont Use
-# Momemtum
+# Momentum
 
 # Dropout
 # Use / Dont Use

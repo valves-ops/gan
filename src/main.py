@@ -7,7 +7,6 @@ import gin
 from architectures import mnist_dcgans, dcgan
 from model.gan_model import GANModel
 from estimator.estimator import GANEstimator
-from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cross_entropy_generator_loss
 from trainops.metrics import frechet_distance
 from trainops.trainops import GANTrainOps
 
@@ -41,7 +40,7 @@ def main(gin_filename):
     gin.parse_config_file(gin_filename)
     gan_model = GANModel(
         generator=dcgan.build_dcgan_generator(),
-        discriminator=mnist_dcgans.build_mnist_discriminator(),
+        discriminator=dcgan.build_dcgan_discriminator(),
         train_step_function=dcgan.dcgan_train_step
     )
 
