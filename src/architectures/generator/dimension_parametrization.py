@@ -3,7 +3,7 @@ import numpy as np
 from scipy import integrate
 
 import anytree
-from anytree import Node, RenderTree, NodeMixin
+from anytree import NodeMixin
 
 
 class Convolution(NodeMixin):

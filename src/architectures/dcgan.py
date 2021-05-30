@@ -4,12 +4,11 @@ import gin
 import numpy as np
 import math
 
+from .generator import filters_parametrization as generator_filters
+from .generator import dimension_parametrization as generator_dimensions
 
-from .generator.dimension_parametrization import (
-    evaluate_dimensions_per_layer,
-    convert_padding_tf_argument,
-)
-from .generator.filters_parametrization import evaluate_filter_depth_per_layer
+from .discriminator import filters_parametrization as discriminator_filters
+from .discriminator import dimension_parametrization as discriminator_dimensions
 
 
 @tf.function
@@ -107,19 +106,19 @@ def build_dcgan_generator(
 ):
     """
     dimension_progression_kurtosis: value between -1 and 1 that determines the morphology of dimensions progression ("exponential", "linear", "logarithmic")
-    filters_progression_kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
-    capacity_profile: how capacity (number of parameters) is distributed across the layers (linear incresing, constant, linear decreasing)
+    filters_depth_progression_kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
     total_capacity: total parameter count of the convolutional/deconvolutional layers
-    depth: number of layers
+    depth: number of convolutional layers
+    kernel: dimension of the kernel to be used across all layers
     initial_dimension: dimension of the first layer
     target_dimension: dimension of the generated image, ie dimension of the final layer
     latent_space_dimension: dimension of the latent space
     """
-    dimensions_per_layer = evaluate_dimensions_per_layer(
+    dimensions_per_layer = generator_dimensions.evaluate_dimensions_per_layer(
         dimension_progression_kurtosis, initial_dimension, target_dimension[0], depth
     )
 
-    filter_depth_per_layer = evaluate_filter_depth_per_layer(
+    filter_depth_per_layer = generator_filters.evaluate_filter_depth_per_layer(
         total_capacity,
         kernel_dimension,
         depth,
