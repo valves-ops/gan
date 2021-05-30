@@ -9,7 +9,7 @@ get_dataset.NOISE_DIM = 100
 img_input_shape = (28, 28, 1)
 
 ### Training ###
-GANTrainOps.epochs = 50
+GANTrainOps.epochs = 51
 GANTrainOps.epochs_per_checkpoint = 10
 GANTrainOps.epochs_per_evaluation = 10
 GANTrainOps.batches_per_logging = 200
