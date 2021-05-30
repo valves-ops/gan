@@ -68,8 +68,21 @@ def reshaped_dense_layer(previous_layer, dimension, filters):
     return reshape_layer
 
 
-def convolutional_layer_parameters(dimensions_per_layer):
-    raise NotImplementedError
+def convolutional_layer(previous_layer,
+                        filter_depth,
+                        stride,
+                        kernel_size,
+                        padding,
+                        activation,):
+    conv_layer = tf.keras.layers.Conv2D(
+        kernel_size=kernel_size,
+        filters=filter_depth,
+        strides=stride,
+        padding=padding,
+    )(previous_layer)
+    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=0.9)(conv_layer)
+    activation = tf.keras.layers.LeakyReLU(alpha=0.1)(batch_norm_layer)
+    return activation
 
 
 def deconvolutional_layer(
@@ -205,7 +218,7 @@ def build_dcgan_discriminator(
 
     for layer in range(depth):
         activation = "relu"  # or another
-        conv_layer = deconvolutional_layer(
+        conv_layer = convolutional_layer(
             previous_layer=previous_layer,
             filter_depth=filter_depth_per_layer[layer],
             stride=dimensions_per_layer[layer].s,
