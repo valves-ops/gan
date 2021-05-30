@@ -4,3 +4,4 @@ data/*
 *.py[cod]
 src/estimator/__pycache__/losses.cpython-37.pyc
 **/__pycache__/**
+wandb/
