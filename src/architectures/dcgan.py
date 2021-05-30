@@ -194,6 +194,7 @@ def build_dcgan_discriminator(
     kernel_dimension,
     initial_dimension,
     target_dimension,
+    initial_filter_depth
 ):
     """
     dimension_progression_kurtosis: value between -1 and 1 that determines the morphology of dimensions progression ("exponential", "linear", "logarithmic")
@@ -222,7 +223,7 @@ def build_dcgan_discriminator(
         kernel_dimension,
         depth,
         filters_depth_progression_kurtosis,
-        initial_dimension[1],
+        initial_filter_depth,
         dimensions_per_layer
     )
 
@@ -248,5 +249,5 @@ def build_dcgan_discriminator(
     flatten_layer = tf.keras.layers.Flatten()(previous_layer)
     output_layer = tf.keras.layers.Dense(1, activation=tf.keras.activations.sigmoid)(flatten_layer)
 
-    discriminator = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+    discriminator = tf.keras.Model(inputs=input_layer, outputs=[output_layer, flatten_layer])
     return discriminator
