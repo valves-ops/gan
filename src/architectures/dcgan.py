@@ -228,7 +228,7 @@ def build_dcgan_discriminator(
         )
         previous_layer = conv_layer
 
-    flatten_layer = tf.eras.layers.Flatten()(previous_layer)
+    flatten_layer = tf.keras.layers.Flatten()(previous_layer)
     output_layer = tf.keras.layers.Dense(1, activation=tf.keras.activations.sigmoid)(flatten_layer)
 
     discriminator = tf.keras.Model(inputs=input_layer, outputs=output_layer)
