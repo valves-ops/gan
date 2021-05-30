@@ -166,22 +166,57 @@ def build_dcgan_generator(
 @gin.configurable
 def build_dcgan_discriminator(
     dimension_progression_kurtosis,
-    filters_progression_kurtosis,
-    capacity_profile,
+    filters_depth_progression_kurtosis,
     total_capacity,
     depth,
+    kernel_dimension,
     initial_dimension,
     target_dimension,
-    latent_space_dimension,
 ):
     """
     dimension_progression_kurtosis: value between -1 and 1 that determines the morphology of dimensions progression ("exponential", "linear", "logarithmic")
-    filters_progression_kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
+    filters_depth_progression_kurtosis: value between -1 and 1 that determines the morphology of filters progression ("exponential", "linear", "logarithmic")
     total_capacity: total parameter count of the network
-    depth: number of layers
-    initial_dimension: dimension of the first layer
-    target_dimension: dimension of the generated image, ie dimension of the final layer
-    latent_space_dimension: dimension of the latent space
+    depth: number of convolutional layers
+    kernel: dimension of the kernel to be used across all layers
+    initial_dimension: dimension of the generated image, ie dimension of the input layer, tuple (HxW, depth)
+    target_dimension: dimension of the tensor prior to the dense layer
     """
 
-    raise NotImplementedError
+    dimensions_per_layer = discriminator_dimensions.evaluate_dimensions_per_layer(
+        dimension_progression_kurtosis, initial_dimension[0], target_dimension, depth
+    )
+
+    filter_depth_per_layer = generator_filters.evaluate_filter_depth_per_layer(
+        total_capacity,
+        kernel_dimension,
+        depth,
+        filters_depth_progression_kurtosis,
+        initial_dimension[1],
+        dimensions_per_layer
+    )
+
+    # Build Model
+    # Input Layer
+    input_layer = tf.keras.layers.Input((initial_dimension[0], 
+                                         initial_dimension[0], 
+                                         initial_dimension[1]))
+    previous_layer = input_layer
+
+    for layer in range(depth):
+        activation = "relu"  # or another
+        conv_layer = deconvolutional_layer(
+            previous_layer=previous_layer,
+            filter_depth=filter_depth_per_layer[layer],
+            stride=dimensions_per_layer[layer].s,
+            kernel_size=kernel_dimension,
+            padding=convert_padding_tf_argument(dimensions_per_layer[layer].p),
+            activation=activation,
+        )
+        previous_layer = conv_layer
+
+    flatten_layer = tf.eras.layers.Flatten()(previous_layer)
+    output_layer = tf.keras.layers.Dense(1, activation=tf.keras.activations.sigmoid)(flatten_layer)
+
+    discriminator = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+    return discriminator
