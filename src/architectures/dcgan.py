@@ -58,6 +58,8 @@ def dcgan_train_step(batch, model_struct):
         zip(discriminator_gradient, discriminator.trainable_variables)
     )
 
+    # return generator_loss, discriminator_loss, generator_gradient, discriminator_gradient
+
 
 def reshaped_dense_layer(previous_layer, dimension, filters):
     dense_layer = tf.keras.layers.Dense(
