@@ -58,13 +58,19 @@ build_dcgan_discriminator.initial_filter_depth = 64
 # Batch Normalization
 # Use/ Dont Use
 # Momentum
-
-# Dropout
-# Use / Dont Use
-# Dropout Rate
+deconvolutional_layer.momentum = 0.8
+convolutional_layer.momentum = 0.8
+reshaped_dense_layer = 0.8
 
 # LeakyReLU
 # alpha
+deconvolutional_layer.alpha = 0.15
+convolutional_layer.alpha = 0.15
+
+# Dropout (DCGANs don't use dropout originally, Radford 2015)
+# Use / Dont Use
+# Dropout Rate
+
 
 
 

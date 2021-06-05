@@ -60,8 +60,8 @@ def dcgan_train_step(batch, model_struct):
 
     # return generator_loss, discriminator_loss, generator_gradient, discriminator_gradient
 
-
-def reshaped_dense_layer(previous_layer, dimension, filters):
+@gin.configurable
+def reshaped_dense_layer(previous_layer, dimension, filters, momentum=0.9):
     dense_layer = tf.keras.layers.Dense(
         units=dimension * dimension * filters, activation=tf.nn.relu
     )(previous_layer)
@@ -70,24 +70,26 @@ def reshaped_dense_layer(previous_layer, dimension, filters):
     reshape_layer = tf.keras.layers.Reshape((dimension, dimension, filters))(activation)
     return reshape_layer
 
-
+@gin.configurable
 def convolutional_layer(previous_layer,
                         filter_depth,
                         stride,
                         kernel_size,
                         padding,
-                        activation,):
+                        activation,
+                        momentum=0.9,
+                        alpha=0.1):
     conv_layer = tf.keras.layers.Conv2D(
         kernel_size=kernel_size,
         filters=filter_depth,
         strides=stride,
         padding=padding,
     )(previous_layer)
-    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=0.9)(conv_layer)
-    activation = tf.keras.layers.LeakyReLU(alpha=0.1)(batch_norm_layer)
+    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum)(conv_layer)
+    activation = tf.keras.layers.LeakyReLU(alpha)(batch_norm_layer)
     return activation
 
-
+@gin.configurable
 def deconvolutional_layer(
     previous_layer,
     filter_depth,
@@ -96,6 +98,8 @@ def deconvolutional_layer(
     padding,
     output_padding,
     activation,
+    momentum=0.9,
+    alpha=0.1
 ):
     deconv_layer = tf.keras.layers.Conv2DTranspose(
         kernel_size=kernel_size,
@@ -104,8 +108,8 @@ def deconvolutional_layer(
         output_padding=output_padding,
         padding=padding,
     )(previous_layer)
-    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=0.9)(deconv_layer)
-    activation = tf.keras.layers.LeakyReLU(alpha=0.1)(batch_norm_layer)
+    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum)(deconv_layer)
+    activation = tf.keras.layers.LeakyReLU(alpha)(batch_norm_layer)
     return activation
 
 def convert_padding_tf_argument(padding):
