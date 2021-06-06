@@ -85,7 +85,7 @@ def convolutional_layer(previous_layer,
         strides=stride,
         padding=padding,
     )(previous_layer)
-    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum)(conv_layer)
+    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=momentum)(conv_layer)
     activation = tf.keras.layers.LeakyReLU(alpha)(batch_norm_layer)
     return activation
 
@@ -108,7 +108,7 @@ def deconvolutional_layer(
         output_padding=output_padding,
         padding=padding,
     )(previous_layer)
-    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum)(deconv_layer)
+    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=momentum)(deconv_layer)
     activation = tf.keras.layers.LeakyReLU(alpha)(batch_norm_layer)
     return activation
 
