@@ -1,3 +1,7 @@
+import argparse
+import glob
+import os
+
 import tensorflow_gan as tfgan
 import tensorflow_datasets as tfds
 import tensorflow as tf
@@ -42,15 +46,18 @@ def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100):
 
     return tf.data.Dataset.zip((noise_ds, image_ds))
 
-def main(gin_filename):
-    gin.parse_config_file(gin_filename)
-    wandb.init(project='mnist-test-setup',
-               name='google-example-arch-full-params')
+@gin.configurable
+def main(gin_filename=None, wandb_project='mnist-test-setup'):
+    if gin_filename:
+        gin.parse_config_file(gin_filename)
+
+    wandb.init(project=wandb_project, name=gin.query_parameter('GANTrainOps.model_slug'))
+
     gan_model = GANModel(
-        # generator=dcgan.build_dcgan_generator(),
-        # discriminator=dcgan.build_dcgan_discriminator(),
-        generator=mnist_dcgans.build_mnist_generator(),
-        discriminator=mnist_dcgans.build_mnist_discriminator(),
+        generator=dcgan.build_dcgan_generator(),
+        discriminator=dcgan.build_dcgan_discriminator(),
+        # generator=mnist_dcgans.build_mnist_generator(),
+        # discriminator=mnist_dcgans.build_mnist_discriminator(),
         train_step_function=dcgan.dcgan_train_step
     )
 
@@ -70,6 +77,50 @@ def main(gin_filename):
 
     return gan_estimator
 
+def get_intermediary_directories(initial_dir, final_dir):
+    subdir_diff = final_dir.replace(initial_dir, '')
+    subdir_list = subdir_diff.split(os.sep)
+    print(subdir_list[:-1])
+    return subdir_list
+
+def get_gin_files_list_for_experiment(experiment_path, run_file):
+    main_path = os.path.dirname(os.path.realpath(__file__))
+    experiments_folder_abs_path = os.path.join(main_path, 'experiments')
+    experiment_abs_path = os.path.join(experiments_folder_abs_path, 
+                                       *experiment_path.split('.'))
+    dirs_to_collect_configs = get_intermediary_directories(
+                                    experiments_folder_abs_path, 
+                                    experiment_abs_path)
+    gin_base_config_files = []
+    previous_dir = experiments_folder_abs_path
+    for subdir in dirs_to_collect_configs:
+        config_file_dir = os.path.join(previous_dir, subdir)
+        config_files_list = glob.glob(os.path.join(config_file_dir, '*.gin'))
+        if len(config_files_list) > 0:
+            gin_base_config_files.append(config_files_list[0])
+        previous_dir = config_file_dir
+
+    run_files = glob.glob(os.path.join(experiment_abs_path, 'runs', '*.gin'))
+    gin_run_file = os.path.join(experiment_abs_path, 'runs', run_file)
+    
+    return gin_base_config_files, gin_run_file
+    
+
 if __name__ == '__main__':
     gin.external_configurable(tf.keras.optimizers.Adam)
-    main('template.gin')
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('--experiment', type=str)
+    argparser.add_argument('--run', type=str)
+
+    args = argparser.parse_args()
+    experiment_path = args.experiment
+    # gin_run_file = os.path.join('experiments', *experiment_path.split('.'), args.run)
+    gin_base_files, gin_run_file = get_gin_files_list_for_experiment(experiment_path, args.run)
+    
+    print('BASE GIN FILES: ', gin_base_files)
+    print('RUN GIN FILE: ', gin_run_file)
+    
+    iteration_gin_files = gin_base_files + [gin_run_file]
+    gin.parse_config_files_and_bindings(config_files=iteration_gin_files, bindings=[])
+    main()
+        
