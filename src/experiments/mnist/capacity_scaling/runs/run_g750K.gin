@@ -1,0 +1,17 @@
+import gin.tf.external_configurables
+
+
+### Model ###
+GANTrainOps.model_slug = 'mnist-capacity-scaling-g750K'
+
+## Architecture (Layers, Filter size, strides)
+
+build_dcgan_generator.total_capacity = 0.75e6
+build_dcgan_discriminator.total_capacity = 0.25e6
+
+
+
+
+
+
+
