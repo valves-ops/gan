@@ -1,2 +1,3 @@
 
-main.wandb_project = 'capacity_scaling'
+main.wandb_project = 'capacity_scaling_100_epochs'
+GANTrainOps.epochs = 101
