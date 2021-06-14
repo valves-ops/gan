@@ -1,4 +1,4 @@
 #!/bin/bash
 
-sh execute_experiment.sh depth_scaling
-sh execute_experiment.sh dim_prog_combinations
+# /bin/bash execute_experiment.sh mnist.depth_scaling
+/bin/bash execute_experiment.sh mnist.dim_prog_combinations

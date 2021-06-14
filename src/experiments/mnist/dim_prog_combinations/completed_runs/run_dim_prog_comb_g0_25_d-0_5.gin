@@ -2,7 +2,7 @@ import gin.tf.external_configurables
 
 
 ### Model ###
-GANTrainOps.model_slug = 'mnist-dim-prog-comb-g0_25-d-0.5'
+GANTrainOps.model_slug = 'mnist-dim-prog-comb-g0.25-d-0.5'
 
 ## Architecture (Layers, Filter size, strides)
 
