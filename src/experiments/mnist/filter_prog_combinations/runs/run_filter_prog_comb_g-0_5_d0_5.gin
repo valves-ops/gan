@@ -1,0 +1,17 @@
+import gin.tf.external_configurables
+
+
+### Model ###
+GANTrainOps.model_slug = 'mnist-filter-prog-comb-g-0.5-d0.5'
+
+## Architecture (Layers, Filter size, strides)
+
+build_dcgan_generator.filters_depth_progression_kurtosis = -0.5
+build_dcgan_discriminator.filters_depth_progression_kurtosis = 0.5
+
+
+
+
+
+
+
