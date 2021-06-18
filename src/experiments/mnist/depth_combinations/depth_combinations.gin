@@ -1,5 +1,5 @@
 
-main.wandb_project = 'filter_prog_combinations_g2750K_100_epochs'
+main.wandb_project = 'depth_combinations_g2750K_opt_progs_100_epochs'
 GANTrainOps.epochs = 101
 
 build_dcgan_generator.total_capacity = 2.75e6
