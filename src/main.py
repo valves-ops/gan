@@ -14,7 +14,7 @@ from model.gan_model import GANModel
 from estimator.estimator import GANEstimator
 from trainops.metrics import frechet_distance
 from trainops.trainops import GANTrainOps
-from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cross_entropy_generator_loss
+from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cross_entropy_generator_loss, feature_matching_generator_loss
 
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
