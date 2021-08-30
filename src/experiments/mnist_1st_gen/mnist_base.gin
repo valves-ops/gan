@@ -1,0 +1,78 @@
+import gin.tf.external_configurables
+
+### Dataset Parameters ###
+DATASET = 'MNIST'
+LATENT_SPACE_DIM = 100
+get_dataset.BATCH_SIZE = 256
+get_dataset.BUFFER_SIZE = 60000
+get_dataset.NOISE_DIM = 100
+img_input_shape = (28, 28, 1)
+
+### Training ###
+GANTrainOps.epochs = 51
+GANTrainOps.epochs_per_checkpoint = 10
+GANTrainOps.epochs_per_evaluation = 10
+GANTrainOps.batches_per_logging = 200
+GANTrainOps.batch_count_for_evaluation = 10
+
+## Losses
+GANEstimator.component_losses = {
+    'generator' : @binary_cross_entropy_generator_loss,
+    'discriminator' : @binary_cross_entropy_discriminator_loss,
+}
+
+## Optimizers
+GANEstimator.component_optimizers = {
+    'generator' : @generator/tf.keras.optimizers.Adam(),
+    'discriminator': @discriminator/tf.keras.optimizers.Adam()
+}
+generator/tf.keras.optimizers.Adam.learning_rate = 1e-5
+discriminator/tf.keras.optimizers.Adam.learning_rate = 1e-5
+
+
+### Model ###
+GANTrainOps.model_slug = 'mnist-vanilla-gin'
+
+## Architecture (Layers, Filter size, strides)
+build_dcgan_generator.dimension_progression_kurtosis = 0.25
+build_dcgan_generator.filters_depth_progression_kurtosis = 0
+build_dcgan_generator.total_capacity = 1.25e6
+build_dcgan_generator.depth = 3
+build_dcgan_generator.kernel_dimension = 5
+build_dcgan_generator.initial_dimension = 7
+build_dcgan_generator.target_dimension = (28, 1)
+build_dcgan_generator.latent_space_dimension = %LATENT_SPACE_DIM
+
+build_dcgan_discriminator.dimension_progression_kurtosis = -0.3
+build_dcgan_discriminator.filters_depth_progression_kurtosis = 0
+build_dcgan_discriminator.total_capacity = 3.14e5
+build_dcgan_discriminator.depth = 2
+build_dcgan_discriminator.kernel_dimension = 5
+build_dcgan_discriminator.initial_dimension = (28, 1)
+build_dcgan_discriminator.target_dimension = 7
+build_dcgan_discriminator.initial_filter_depth = 64
+
+## Architectural Features
+# Kernel Size [(5,5) (4,4) (3,3)]
+
+# Batch Normalization
+# Use/ Dont Use
+# Momentum
+deconvolutional_layer.momentum = 0.8
+convolutional_layer.momentum = 0.8
+reshaped_dense_layer = 0.8
+
+# LeakyReLU
+# alpha
+deconvolutional_layer.alpha = 0.15
+convolutional_layer.alpha = 0.15
+
+# Dropout (DCGANs don't use dropout originally, Radford 2015)
+# Use / Dont Use
+# Dropout Rate
+
+
+
+
+
+
