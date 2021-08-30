@@ -9,7 +9,7 @@ get_dataset.NOISE_DIM = 100
 img_input_shape = (28, 28, 1)
 
 ### Training ###
-GANTrainOps.epochs = 51
+GANTrainOps.epochs = 41
 GANTrainOps.epochs_per_checkpoint = 10
 GANTrainOps.epochs_per_evaluation = 10
 GANTrainOps.batches_per_logging = 200
@@ -17,7 +17,7 @@ GANTrainOps.batch_count_for_evaluation = 10
 
 ## Losses
 GANEstimator.component_losses = {
-    'generator' : @binary_cross_entropy_generator_loss,
+    'generator' : @feature_matching_generator_loss,
     'discriminator' : @binary_cross_entropy_discriminator_loss,
 }
 
@@ -35,17 +35,17 @@ GANTrainOps.model_slug = 'mnist-vanilla-gin'
 
 ## Architecture (Layers, Filter size, strides)
 build_dcgan_generator.dimension_progression_kurtosis = 0.25
-build_dcgan_generator.filters_depth_progression_kurtosis = 0
-build_dcgan_generator.total_capacity = 1.25e6
+build_dcgan_generator.filters_depth_progression_kurtosis = 0.5
+build_dcgan_generator.total_capacity = 5.5e6
 build_dcgan_generator.depth = 3
 build_dcgan_generator.kernel_dimension = 5
 build_dcgan_generator.initial_dimension = 7
 build_dcgan_generator.target_dimension = (28, 1)
 build_dcgan_generator.latent_space_dimension = %LATENT_SPACE_DIM
 
-build_dcgan_discriminator.dimension_progression_kurtosis = -0.3
+build_dcgan_discriminator.dimension_progression_kurtosis = 0.25
 build_dcgan_discriminator.filters_depth_progression_kurtosis = 0
-build_dcgan_discriminator.total_capacity = 3.14e5
+build_dcgan_discriminator.total_capacity = 18.34e5
 build_dcgan_discriminator.depth = 2
 build_dcgan_discriminator.kernel_dimension = 5
 build_dcgan_discriminator.initial_dimension = (28, 1)
