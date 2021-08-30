@@ -1,6 +1,6 @@
 import tensorflow as tf
 import gin
-
+import wandb
 
 @gin.configurable
 class GANEstimator:
@@ -27,9 +27,19 @@ class GANEstimator:
 
         self.checkpoint = tf.train.Checkpoint(**models_and_optimizers)
 
+        wandb.config.generator_learning_rate = self.component_optimizers['generator'].learning_rate.numpy()
+        wandb.config.generator_beta_1 = self.component_optimizers['generator'].beta_1.numpy()
+        wandb.config.generator_beta_2 = self.component_optimizers['generator'].beta_2.numpy()
+
+        wandb.config.discriminator_learning_rate = self.component_optimizers['discriminator'].learning_rate.numpy()
+        wandb.config.discriminator_beta_1 = self.component_optimizers['discriminator'].beta_1.numpy()
+        wandb.config.discriminator_beta_2 = self.component_optimizers['discriminator'].beta_2.numpy()
+
         print('--- GAN Train Ops Setup ---')
-        print('Generator Optimizer Learning Rate: ', 
+        print('Optimizer Learning Rate: ', 
                 self.component_optimizers['generator'].learning_rate.numpy())
+        print('Optimizer Beta 1: ', 
+                self.component_optimizers['generator'].beta_1.numpy())
         print('Losses: ', self.component_losses)
         print('Optimizers: ', self.component_optimizers)
         print('Evaluation Metrics: ', self.evaluation_metrics)
