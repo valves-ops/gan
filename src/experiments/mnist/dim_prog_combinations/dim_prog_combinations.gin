@@ -1,6 +1,2 @@
 
-main.wandb_project = 'dim_prog_combinations_g2750K_100_epochs'
-GANTrainOps.epochs = 101
-
-build_dcgan_generator.total_capacity = 2.75e6
-build_dcgan_discriminator.total_capacity = 9.17e5
+main.wandb_project = 'dim_prog_combinations_2nd_gen'

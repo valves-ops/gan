@@ -14,7 +14,7 @@ from model.gan_model import GANModel
 from estimator.estimator import GANEstimator
 from trainops.metrics import frechet_distance
 from trainops.trainops import GANTrainOps
-from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cross_entropy_generator_loss
+from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cross_entropy_generator_loss, feature_matching_generator_loss
 
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -77,6 +77,7 @@ def main(gin_filename=None, wandb_project='mnist-test-setup'):
 
     return gan_estimator
 
+
 def get_intermediary_directories(initial_dir, final_dir):
     subdir_diff = final_dir.replace(initial_dir, '')
     subdir_list = subdir_diff.split(os.sep)
@@ -111,16 +112,20 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--experiment', type=str)
     argparser.add_argument('--run', type=str)
+    argparser.add_argument('--permutation', type=str)
 
     args = argparser.parse_args()
     experiment_path = args.experiment
     # gin_run_file = os.path.join('experiments', *experiment_path.split('.'), args.run)
-    gin_base_files, gin_run_file = get_gin_files_list_for_experiment(experiment_path, args.run)
     
+    gin_base_files, gin_run_file = get_gin_files_list_for_experiment(experiment_path, args.run)
+    gin_permutation_file = args.permutation
     print('BASE GIN FILES: ', gin_base_files)
+    print('PERMUTATION GIN FILE: ', gin_permutation_file)
     print('RUN GIN FILE: ', gin_run_file)
     
-    iteration_gin_files = gin_base_files + [gin_run_file]
+    iteration_gin_files = gin_base_files + [gin_permutation_file] + [gin_run_file]
     gin.parse_config_files_and_bindings(config_files=iteration_gin_files, bindings=[])
+
     main()
         
