@@ -68,8 +68,12 @@ class GANEstimator:
         for count, batch in enumerate(dataset):
             self.gan_model.evaluate(batch)
             # Calculate Metrics
+            print(count)
             for metric_name, metric_function in self.evaluation_metrics.items():
                 metrics[metric_name].update_state(metric_function(self.gan_model))
+            
+            if count == batch_count:
+                break
 
         # Return metrics
         return metrics
