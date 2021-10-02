@@ -12,7 +12,7 @@ import wandb
 from architectures import mnist_dcgans, dcgan
 from model.gan_model import GANModel
 from estimator.estimator import GANEstimator
-from trainops.metrics import frechet_distance
+from trainops.metrics import get_frechet_distance_func
 from trainops.trainops import GANTrainOps
 from estimator.losses import binary_cross_entropy_discriminator_loss, binary_cross_entropy_generator_loss, feature_matching_generator_loss
 
@@ -26,7 +26,7 @@ def _preprocess(element):
         return images
 
 @gin.configurable
-def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100):
+def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100, DATASET='MNIST'):
     wandb.config.batch_size = BATCH_SIZE
     wandb.config.buffer_size = BUFFER_SIZE
     wandb.config.noise_dim = NOISE_DIM
@@ -37,17 +37,22 @@ def get_dataset(BATCH_SIZE = 128, BUFFER_SIZE = 10000, NOISE_DIM = 100):
     print('---------------------')
     noise_ds = (tf.data.Dataset.from_tensors(0).repeat().map(lambda _: tf.random.normal([BATCH_SIZE, NOISE_DIM])))
 
-    (train_images, train_labels), (_, _) = tf.keras.datasets.mnist.load_data()
-    train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
-    train_images = (train_images - 127.5) / 127.5 
-    # train_images = (train_images) / 255
+    if DATASET == 'MNIST':
+        (train_images, train_labels), (_, _) = tf.keras.datasets.mnist.load_data()
+        train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
+        train_images = (train_images - 127.5) / 127.5 
+        # train_images = (train_images) / 255
+    elif DATASET == 'CIFAR':
+        (train_images, train_labels), (_, _) = tf.keras.datasets.cifar10.load_data()
+        train_images = train_images.reshape(train_images.shape[0], 32, 32, 3).astype('float32')
+        train_images = (train_images - 127.5) / 127.5
 
     image_ds = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
     return tf.data.Dataset.zip((noise_ds, image_ds))
 
 @gin.configurable
-def main(gin_filename=None, wandb_project='mnist-test-setup'):
+def main(gin_filename=None, wandb_project='mnist-test-setup', DATASET='MNIST'):
     if gin_filename:
         gin.parse_config_file(gin_filename)
 
@@ -64,13 +69,13 @@ def main(gin_filename=None, wandb_project='mnist-test-setup'):
     gan_estimator = GANEstimator(
         gan_model=gan_model,
         evaluation_metrics={
-            'frechet_distance' :  frechet_distance
+            'frechet_distance' :  get_frechet_distance_func(DATASET)
         },
     )
 
     gan_trainops = GANTrainOps(
         gan_estimator=gan_estimator,
-        dataset=get_dataset(),
+        dataset=get_dataset(DATASET=DATASET),
     )
 
     gan_trainops.train()
