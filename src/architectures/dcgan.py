@@ -98,18 +98,26 @@ def deconvolutional_layer(
     padding,
     output_padding,
     activation,
+    batch_norm=True,
     momentum=0.9,
     alpha=0.1
 ):
-    deconv_layer = tf.keras.layers.Conv2DTranspose(
+    previous_layer = tf.keras.layers.Conv2DTranspose(
         kernel_size=kernel_size,
         filters=filter_depth,
         strides=stride,
         output_padding=output_padding,
         padding=padding,
     )(previous_layer)
-    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=momentum)(deconv_layer)
-    activation = tf.keras.layers.LeakyReLU(alpha)(batch_norm_layer)
+
+    if batch_norm:
+        previous_layer = tf.keras.layers.BatchNormalization(momentum=momentum)(previous_layer)
+    
+    if activation == 'tanh':
+        activation = tf.keras.layers.tanh()(previous_layer)
+    else:
+        activation = tf.keras.layers.LeakyReLU(alpha)(previous_layer)
+    
     return activation
 
 def convert_padding_tf_argument(padding):
@@ -172,8 +180,10 @@ def build_dcgan_generator(
     for layer in range(depth):
         if layer == depth - 1:
             activation = "tanh"  # fixed
+            batch_norm = False
         else:
             activation = "relu"  # or another
+            batch_norm = True
         deconv_layer = deconvolutional_layer(
             previous_layer=previous_layer,
             filter_depth=filter_depth_per_layer[layer],
@@ -182,6 +192,7 @@ def build_dcgan_generator(
             padding=convert_padding_tf_argument(dimensions_per_layer[layer].p),
             output_padding=dimensions_per_layer[layer].op,
             activation=activation,
+            batch_norm=batch_norm
         )
         previous_layer = deconv_layer
 
@@ -242,6 +253,11 @@ def build_dcgan_discriminator(
 
     for layer in range(depth):
         activation = "relu"  # or another
+        if layer == 0:
+            batch_norm = False
+        else:
+            batch_norm = True
+        
         conv_layer = convolutional_layer(
             previous_layer=previous_layer,
             filter_depth=filter_depth_per_layer[layer],
@@ -249,6 +265,7 @@ def build_dcgan_discriminator(
             kernel_size=kernel_dimension,
             padding=convert_padding_tf_argument(dimensions_per_layer[layer].p),
             activation=activation,
+            batch_norm=batch_norm
         )
         previous_layer = conv_layer
 
