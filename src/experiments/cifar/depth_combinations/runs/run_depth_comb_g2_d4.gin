@@ -1,0 +1,9 @@
+import gin.tf.external_configurables
+
+
+### Model ###
+GANTrainOps.model_slug = 'depth-comb-g2-d4'
+
+## Architecture (Layers, Filter size, strides)
+build_dcgan_generator.depth = 2
+build_dcgan_discriminator.depth = 4

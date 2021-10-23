@@ -1,0 +1,16 @@
+import gin.tf.external_configurables
+
+
+### Model ###
+GANTrainOps.model_slug = 'capacity-scaling-g4500K-d1500K'
+
+## Architecture (Layers, Filter size, strides)
+build_dcgan_generator.total_capacity = 4.5e6
+build_dcgan_discriminator.total_capacity = 1.5e6
+
+
+
+
+
+
+
