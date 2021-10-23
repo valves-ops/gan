@@ -1,2 +1,2 @@
 
-main.wandb_project = 'filter_prog_combinations_3rd_gen'
+main.wandb_project = 'mnist_filter_prog_combinations_4th_gen'

@@ -1,2 +1,2 @@
 
-main.wandb_project = 'capacity_scaling_3rd_gen'
+main.wandb_project = 'mnist_capacity_scaling_4th_gen'

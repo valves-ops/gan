@@ -34,17 +34,17 @@ discriminator/tf.keras.optimizers.Adam.learning_rate = 1e-5
 GANTrainOps.model_slug = 'mnist-vanilla-gin'
 
 ## Architecture (Layers, Filter size, strides)
-build_dcgan_generator.dimension_progression_kurtosis = 0.25
-build_dcgan_generator.filters_depth_progression_kurtosis = 0.5
+build_dcgan_generator.dimension_progression_kurtosis = -0.4
+build_dcgan_generator.filters_depth_progression_kurtosis = 0.4
 build_dcgan_generator.total_capacity = 5.5e6
-build_dcgan_generator.depth = 3
+build_dcgan_generator.depth = 4
 build_dcgan_generator.kernel_dimension = 5
 build_dcgan_generator.initial_dimension = 7
 build_dcgan_generator.target_dimension = (28, 1)
 build_dcgan_generator.latent_space_dimension = %LATENT_SPACE_DIM
 
-build_dcgan_discriminator.dimension_progression_kurtosis = 0.25
-build_dcgan_discriminator.filters_depth_progression_kurtosis = 0
+build_dcgan_discriminator.dimension_progression_kurtosis = 0
+build_dcgan_discriminator.filters_depth_progression_kurtosis = 0.4
 build_dcgan_discriminator.total_capacity = 18.34e5
 build_dcgan_discriminator.depth = 2
 build_dcgan_discriminator.kernel_dimension = 5
