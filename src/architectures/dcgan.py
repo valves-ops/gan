@@ -77,16 +77,18 @@ def convolutional_layer(previous_layer,
                         kernel_size,
                         padding,
                         activation,
+                        batch_norm=True,
                         momentum=0.9,
                         alpha=0.1):
-    conv_layer = tf.keras.layers.Conv2D(
+    previous_layer = tf.keras.layers.Conv2D(
         kernel_size=kernel_size,
         filters=filter_depth,
         strides=stride,
         padding=padding,
     )(previous_layer)
-    batch_norm_layer = tf.keras.layers.BatchNormalization(momentum=momentum)(conv_layer)
-    activation = tf.keras.layers.LeakyReLU(alpha)(batch_norm_layer)
+    if batch_norm:
+        previous_layer = tf.keras.layers.BatchNormalization(momentum=momentum)(previous_layer)
+    activation = tf.keras.layers.LeakyReLU(alpha)(previous_layer)
     return activation
 
 @gin.configurable
@@ -114,7 +116,7 @@ def deconvolutional_layer(
         previous_layer = tf.keras.layers.BatchNormalization(momentum=momentum)(previous_layer)
     
     if activation == 'tanh':
-        activation = tf.keras.layers.tanh()(previous_layer)
+        activation = tf.keras.layers.Activation('tanh')(previous_layer)
     else:
         activation = tf.keras.layers.LeakyReLU(alpha)(previous_layer)
     
