@@ -1,8 +1,0 @@
-
-
-generator/tf.keras.optimizers.Adam.learning_rate = 1e-3
-generator/tf.keras.optimizers.Adam.beta_1 = 0.9
-
-
-discriminator/tf.keras.optimizers.Adam.learning_rate = 1e-3
-generator/tf.keras.optimizers.Adam.beta_1 = 0.9

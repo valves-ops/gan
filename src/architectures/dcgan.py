@@ -170,7 +170,7 @@ def build_dcgan_generator(
         dimensions_per_layer,
         latent_space_dimension,
     )
-
+    
     # Build Model
     # Input Layer
     input_layer = tf.keras.layers.Input(latent_space_dimension)
