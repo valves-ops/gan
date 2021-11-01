@@ -1,2 +1,2 @@
 
-main.wandb_project = 'depth_combinations_3rd_gen'
+main.wandb_project = 'mnist_depth_combinations_4thrd_gen'
