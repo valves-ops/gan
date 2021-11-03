@@ -155,4 +155,8 @@ def evaluate_filter_depth_per_layer(
     filters_profile = get_filters_profile(
         kurtosis, depth, estimated_initial_filter_depth, target_filter_depth
     )
+
+    if filters_profile[-1] != target_filter_depth:
+        filters_profile[-1] = target_filter_depth
+
     return filters_profile
