@@ -50,9 +50,9 @@ build_dcgan_generator.target_dimension = (32, 3)
 build_dcgan_generator.latent_space_dimension = %LATENT_SPACE_DIM
 
 build_dcgan_discriminator.dimension_progression_kurtosis = 0.4
-build_dcgan_discriminator.filters_depth_progression_kurtosis = 0.4
+build_dcgan_discriminator.filters_depth_progression_kurtosis = 0
 build_dcgan_discriminator.total_capacity = 0.5e6
-build_dcgan_discriminator.depth = 3
+build_dcgan_discriminator.depth = 4
 build_dcgan_discriminator.kernel_dimension = 5
 build_dcgan_discriminator.initial_dimension = (32, 3)
 build_dcgan_discriminator.target_dimension = 4
