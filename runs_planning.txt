@@ -1,0 +1,59 @@
+ --- Training ---
+Learning Rate - 0.0002, 0.0001, 0.001
+B1            - 0.5, 0.9
+B2            - 0.9, 0.999
+
+
+ --- Architectural ---
+
+Capacity/Complexity/Size Scaling
+G/D Ration Locked
+- 
+
+G/D Ratios
+- 
+
+Dimension Progression 
+G - -0.5, -0.25, 0, 0.25, 0.5
+D - -0.5, -0.25, 0, 0.25, 0.5
+
+Filters Progression 
+G - -0.5, -0.25, 0, 0.25, 0.5
+D - -0.5, -0.25, 0, 0.25, 0.5
+
+Kernel Sizes
+G - 3, 4, 5
+D - 3, 4, 5
+
+Depth Scaling
+G - 2, 3, 4, 5
+D - 2, 3, 4, 5
+
+
+
+
+Combinations
+Best Size G(5.5K)      - FID(40)
+Best Kernel 5-5        - FID(47)
+Best Depth  3-2        - FID(92)
+Best G Filter Prog 0.5 - FID(51)
+Best Dim Prog 0.25x0.25- FID(41) (but 0.25x-0.25 is pretty close)
+
+
+
+*** Suggested Space:
+
+Kernel Size fixed - 5x5
+
+Depth (check literature)
+Capacity (check literature)
+
+Dim and Filter Progression: -0.4, 0, 0.4
+
+
+Learning Rate: 0.0001, 0.001
+B1            - 0.5, 0.9
+B2 (fixed at default)
+
+
+Initialization - run 3 times
