@@ -2,7 +2,7 @@ import gin.tf.external_configurables
 
 
 ### Model ###
-GANTrainOps.model_slug = 'mnist-capacity-scaling-g1500K-d1500K'
+GANTrainOps.model_slug = 'capacity-scaling-g1500K-d1500K'
 
 ## Architecture (Layers, Filter size, strides)
 
